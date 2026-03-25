@@ -1,0 +1,42 @@
+{
+  "name": "trackareer-front",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "build:cloudflare": "opennextjs-cloudflare build",
+    "deploy:cloudflare": "opennextjs-cloudflare deploy",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "fix:all": "prettier --write . && eslint . --fix"
+  },
+  "dependencies": {
+    "date-fns": "^4.1.0",
+    "firebase": "^12.8.0",
+    "next": "16.1.5",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zustand": "^5.0.10"
+  },
+  "devDependencies": {
+    "@opennextjs/cloudflare": "^1.17.1",
+    "@svgr/webpack": "^8.1.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@typescript-eslint/parser": "^8.55.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.1.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "3.8.1",
+    "tailwindcss": "^4",
+    "typescript": "^5.9.3",
+    "wrangler": "^4.73.0"
+  }
+}

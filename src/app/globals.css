@@ -1,0 +1,66 @@
+@import 'tailwindcss';
+
+@theme {
+  /* --color-base: #F1F4F9; */
+  --breakpoint-mobile: 320px;
+  --breakpoint-tablet: 600px;
+  --breakpoint-laptop: 1200px;
+  --breakpoint-desktop: 1536px;
+  --color-primary: #3059af;
+  --color-secondary: #549ed7;
+  --color-secondary-500: rgb(84, 158, 215, 0.5);
+  --color-tertiary: #f1f4f9;
+  --color-accent: #de6249;
+  --color-muted: #a2a2a2;
+  --color-disabled: #d9d9d9;
+  --color-background: #fafafa;
+  --color-text: #000000;
+  --shadow-default: 0px 0px 24px rgba(193, 193, 193, 0.25);
+}
+
+/* 배경/높이 기본값 — 100dvh로 모바일 브라우저 UI 변화에 대응 */
+html {
+  height: 100dvh;
+}
+
+body {
+  height: 100%;
+}
+
+button,
+a {
+  cursor: pointer;
+}
+
+/* ✅ marquee utilities (Tailwind v4) */
+@layer utilities {
+  @keyframes marquee-right {
+    0% {
+      transform: translateX(-50%);
+    }
+
+    100% {
+      transform: translateX(0%);
+    }
+  }
+
+  @keyframes marquee-left {
+    0% {
+      transform: translateX(0%);
+    }
+
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marqueeRight {
+    animation: marquee-right 18s linear infinite;
+    will-change: transform;
+  }
+
+  .animate-marqueeLeft {
+    animation: marquee-left 18s linear infinite;
+    will-change: transform;
+  }
+}

@@ -102,15 +102,15 @@ export default function Page() {
     <>
       {!auth && (
         <main className="flex-1 w-full flex flex-col items-center justify-center px-4 tablet:px-9 py-8">
-          <div className="flex-1 w-full max-w-[54rem] flex flex-col items-center justify-center">
-            <h2 className="text-xl font-normal text-text/80 text-center">
+          <div className="flex-1 w-full max-w-[54rem] flex flex-col items-center justify-center pb-16 tablet:pb-0">
+            <h2 className="text-sm tablet:text-xl font-normal text-text/80 text-center">
               힘들고 긴 취준 여정, 놓치지 않도록 끝까지 관리해드릴게요
             </h2>
-            <h1 className="text-4xl font-bold text-text text-center mt-4">
+            <h1 className="text-2xl tablet:text-4xl font-bold text-text text-center mt-4">
               지원하고 싶은 공고가 있나요?
             </h1>
             <JobPostingInput
-              className="mt-15"
+              className="mt-8 tablet:mt-15"
               url={url}
               onChangeUrl={handleChangeUrl}
               onCreate={handleSelfButtonPressed}

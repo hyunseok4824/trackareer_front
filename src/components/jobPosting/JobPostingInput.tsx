@@ -44,23 +44,21 @@ export default function JobPostingInput({
       <section
         className={`shrink-0 w-full rounded-3xl flex flex-col bg-white overflow-hidden shadow-default ${className}`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between gap-3 bg-primary px-6 py-3">
+        {/* Header: 모바일에서는 숨김, tablet 이상은 기존 모습 유지 */}
+        <div className="hidden tablet:flex items-center justify-between gap-3 bg-primary px-6 py-3">
           <p className="text-base font-bold text-white">
             간편하게 지원할 공고들의 일정을 등록하세요
           </p>
-          <div className="relative">
-            <button
-              className="flex items-center gap-1 border border-white rounded-full px-3 py-2 text-sm font-medium text-white hover:bg-white hover:text-primary"
-              type="button"
-              onClick={openJobSiteListModal}
-            >
-              지원할 공고 찾아보기
-              <ChevronRightIcon width={16} height={16} />
-            </button>
-          </div>
+          <button
+            className="flex items-center gap-1 border border-white rounded-full px-3 py-2 text-sm font-medium text-white hover:bg-white hover:text-primary"
+            type="button"
+            onClick={openJobSiteListModal}
+          >
+            지원할 공고 찾아보기
+            <ChevronRightIcon width={16} height={16} />
+          </button>
         </div>
-        <div className="p-6 flex flex-col gap-3">
+        <div className="p-4 tablet:p-6 flex flex-col gap-3">
           <textarea
             value={url}
             onChange={e => onChangeUrl(e.target.value)}
@@ -68,11 +66,12 @@ export default function JobPostingInput({
             className="h-13 w-full outline-none text-base text-text placeholder:text-muted overflow-y-scroll resize-none"
           />
 
-          <div className="flex items-center justify-end gap-3">
+          {/* 모바일: flex-1 균등 분할 / tablet+: 기존 우측 정렬 */}
+          <div className="flex items-center gap-3 tablet:justify-end">
             <button
               type="button"
               onClick={onCreate}
-              className="py-2 px-3 rounded-2xl bg-tertiary text-sm leading-4 font-medium text-primary"
+              className="flex-1 tablet:flex-none py-3 tablet:py-2 px-3 rounded-2xl bg-tertiary text-sm leading-4 font-medium text-primary"
             >
               직접 입력하기
             </button>
@@ -80,7 +79,7 @@ export default function JobPostingInput({
             <button
               type="button"
               onClick={handleSubmit}
-              className="py-2 px-3 rounded-2xl bg-primary text-sm leading-4 font-medium text-white"
+              className="flex-1 tablet:flex-none py-3 tablet:py-2 px-3 rounded-2xl bg-primary text-sm leading-4 font-medium text-white"
             >
               일정에 등록하기
             </button>

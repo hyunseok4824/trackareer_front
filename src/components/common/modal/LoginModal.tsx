@@ -47,7 +47,7 @@ export default function LoginModal({ onClose }: Props) {
 
   return (
     <>
-      <div className="w-dvw h-dvh max-w-120 max-h-150 p-8">
+      <div className="w-dvw h-dvh max-w-120 max-h-150 p-5 tablet:p-8">
         <header className="w-full relative flex flex-col justify-center items-center lg:h-[20%]">
           {/* 취소 버튼 */}
           <button
@@ -61,7 +61,7 @@ export default function LoginModal({ onClose }: Props) {
         </header>
         <div className="flex flex-col h-[80%]">
           <main className="flex flex-1 flex-col items-center justify-center">
-            <article className="text-center mb-20">
+            <article className="text-center mb-10 tablet:mb-20">
               <p className="text-xl font-semibold leading-8 text-black select-none">
                 3초만에 로그인하고
                 <br />
@@ -78,7 +78,7 @@ export default function LoginModal({ onClose }: Props) {
                     Chrome 또는 Safari에서 접속해주세요.
                   </p>
                   <button
-                    className="flex flex-row items-center justify-center w-75 h-12.5 px-6 border border-muted rounded bg-white text-base font-medium text-text"
+                    className="flex flex-row items-center justify-center w-full max-w-75 h-12.5 px-6 border border-muted rounded bg-white text-base font-medium text-text"
                     type="button"
                     onClick={openInExternalBrowser}
                   >
@@ -87,7 +87,7 @@ export default function LoginModal({ onClose }: Props) {
                 </>
               ) : (
                 <button
-                  className="flex flex-row items-center w-75 h-12.5 p-3 pr-9 border border-muted rounded bg-white"
+                  className="flex flex-row items-center w-full max-w-75 h-12.5 p-3 pr-9 border border-muted rounded bg-white"
                   type="button"
                   onClick={loginWithGoogle}
                   disabled={onLoading}

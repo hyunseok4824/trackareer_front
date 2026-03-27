@@ -19,15 +19,23 @@ function LoginButtonSet() {
   return (
     <>
       <div className="flex items-center gap-2">
+        {/* 모바일: 단일 CTA 버튼 */}
         <button
           onClick={openLoginModal}
-          className="h-9 px-4 bg-primary rounded-3xl text-sm font-bold text-white hover:bg-primary/90 transition"
+          className="tablet:hidden h-9 px-4 bg-primary rounded-3xl text-sm font-bold text-white hover:bg-primary/90 transition"
+        >
+          시작하기
+        </button>
+        {/* 태블릿 이상: 로그인 + 회원가입 */}
+        <button
+          onClick={openLoginModal}
+          className="hidden tablet:block h-9 px-4 bg-primary rounded-3xl text-sm font-bold text-white hover:bg-primary/90 transition"
         >
           로그인
         </button>
         <button
           onClick={openLoginModal}
-          className="h-9 px-4 border border-primary rounded-3xl text-sm font-bold text-primary hover:bg-primary/10 transition"
+          className="hidden tablet:block h-9 px-4 border border-primary rounded-3xl text-sm font-bold text-primary hover:bg-primary/10 transition"
         >
           회원가입
         </button>

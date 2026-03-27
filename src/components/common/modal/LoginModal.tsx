@@ -47,17 +47,18 @@ export default function LoginModal({ onClose }: Props) {
 
   return (
     <>
-      <div className="w-dvw h-dvh max-w-120 max-h-150 p-5 tablet:p-8">
-        <header className="w-full relative flex flex-col justify-center items-center lg:h-[20%]">
-          {/* 취소 버튼 */}
+      <div className="w-full min-w-72 tablet:w-120 h-dvh max-h-150">
+        <div className="p-5 tablet:p-8 h-full flex flex-col">
+        <header className="w-full relative flex justify-center items-center shrink-0 py-1">
+          <FullLogo className="max-w-38 lg:max-w-full" />
+          {/* 취소 버튼: 패딩 영역 내 우측 정렬 */}
           <button
-            className="flex items-center justify-center absolute right-0 top-0 w-10 h-10"
+            className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center justify-center w-10 h-10"
             aria-label="Close"
             onClick={onClose}
           >
             <Close />
           </button>
-          <FullLogo className="max-w-38 lg:max-w-full" />
         </header>
         <div className="flex flex-col h-[80%]">
           <main className="flex flex-1 flex-col items-center justify-center">
@@ -87,13 +88,13 @@ export default function LoginModal({ onClose }: Props) {
                 </>
               ) : (
                 <button
-                  className="flex flex-row items-center w-full max-w-75 h-12.5 p-3 pr-9 border border-muted rounded bg-white"
+                  className="flex flex-row items-center justify-center gap-3 w-full h-14 px-6 border border-muted rounded-xl bg-white"
                   type="button"
                   onClick={loginWithGoogle}
                   disabled={onLoading}
                 >
                   <GoogleIcon width={24} height={24} />
-                  <span className="flex-1 text-base font-medium text-text text-center">
+                  <span className="text-lg font-medium text-text">
                     구글 계정으로 시작하기
                   </span>
                 </button>
@@ -119,6 +120,7 @@ export default function LoginModal({ onClose }: Props) {
               개인 정보 처리 방침
             </Link>
           </footer>
+        </div>
         </div>
       </div>
       <LoadingModal isOpen={onLoading} />

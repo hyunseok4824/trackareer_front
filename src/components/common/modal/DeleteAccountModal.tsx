@@ -39,63 +39,78 @@ export default function DeleteAccountModal({ onCancel, onSubmit, submitting = fa
   };
 
   return (
-    <div className="w-120 h-140 bg-white rounded-3xl p-8 shadow-xl flex flex-col items-center">
-      <h1 className="text-xl font-bold text-center mb-4">계정 삭제</h1>
+    <div className="w-full h-dvh tablet:w-120 tablet:h-140 flex flex-col overflow-hidden bg-white">
+      <header
+        className="shrink-0 px-6 tablet:px-8 pb-4 pt-6 tablet:pt-8 border-b border-gray-100"
+        style={{ paddingTop: 'max(1.5rem, env(safe-area-inset-top))' }}
+      >
+        <h1 className="text-xl font-bold text-center">계정 삭제</h1>
+        <p className="mt-4 text-sm text-gray-500 text-center leading-relaxed break-keep">
+          저희 서비스에 주신 관심과 사랑에 감사드립니다.
+          <br />
+          귀하의 솔직한 의견을 공유해주신다면
+          <br />
+          더 나은 서비스로 거듭나도록 하겠습니다.
+        </p>
+      </header>
 
-      <p className="text-sm text-gray-500 text-center mb-6 leading-relaxed">
-        저희 서비스에 주신 관심과 사랑에 감사드립니다.
-        <br />
-        귀하의 솔직한 의견을 공유해주신다면
-        <br />더 나은 서비스로 거듭나도록 하겠습니다.
-      </p>
+      <main className="min-h-0 flex-1 overflow-y-auto px-6 tablet:px-8 py-6">
+        <div className="w-full flex flex-col gap-3">
+          {REASONS.map(reason => (
+            <label
+              key={reason}
+              className="flex items-start gap-3 rounded-2xl border border-gray-200 px-4 py-3 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                name="delete-reason"
+                value={reason}
+                checked={selectedReasons.includes(reason)}
+                onChange={() =>
+                  setSelectedReasons(prev =>
+                    prev.includes(reason) ? prev.filter(r => r !== reason) : [...prev, reason],
+                  )
+                }
+                className="mt-0.5 h-4 w-4 shrink-0 accent-primary"
+              />
+              <div className="flex-1 flex flex-col items-stretch gap-2 min-w-0">
+                <span className="text-sm leading-6 text-gray-800 break-keep">{reason}</span>
+                {reason === '기타' && isOther && (
+                  <input
+                    className="w-full min-w-0 rounded-xl border border-gray-300 px-3 py-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/15"
+                    value={otherText}
+                    onChange={e => setOtherText(e.target.value)}
+                    placeholder="직접 입력..."
+                  />
+                )}
+              </div>
+            </label>
+          ))}
+        </div>
+      </main>
 
-      <div className="w-64 flex flex-col gap-4">
-        {REASONS.map(reason => (
-          <label key={reason} className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              name="delete-reason"
-              value={reason}
-              checked={selectedReasons.includes(reason)}
-              onChange={() =>
-                setSelectedReasons(prev =>
-                  prev.includes(reason) ? prev.filter(r => r !== reason) : [...prev, reason],
-                )
-              }
-              className="w-4 h-4 accent-primary"
-            />
-            <div className="flex-1 flex flex-col items-stretch gap-2">
-              <span className="text-sm text-gray-800">{reason}</span>
-              {reason === '기타' && isOther && (
-                <input
-                  className="w-full p-2 rounded-lg border border-gray-300 text-sm outline-none"
-                  value={otherText}
-                  onChange={e => setOtherText(e.target.value)}
-                  placeholder="직접 입력..."
-                />
-              )}
-            </div>
-          </label>
-        ))}
-      </div>
+      <footer
+        className="shrink-0 border-t border-gray-100 bg-white px-6 tablet:px-8 pt-4 pb-6"
+        style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+      >
+        <div className="grid grid-cols-2 gap-3 tablet:mx-auto tablet:max-w-sm">
+          <button
+            onClick={onCancel}
+            disabled={submitting}
+            className="w-full min-h-12 rounded-xl border border-primary px-4 py-3 text-center text-base font-medium text-primary"
+          >
+            취소하기
+          </button>
 
-      <div className="flex flex-row gap-4 mt-8">
-        <button
-          onClick={onCancel}
-          disabled={submitting}
-          className="w-30 py-3 rounded-xl border border-primary text-primary font-medium text-center"
-        >
-          취소하기
-        </button>
-
-        <button
-          onClick={handleSubmit}
-          disabled={!isValid || submitting}
-          className="w-30 py-3 rounded-xl border border-primary bg-primary text-white font-medium text-center disabled:bg-disabled disabled:border-disabled disabled:cursor-not-allowed"
-        >
-          제출하기
-        </button>
-      </div>
+          <button
+            onClick={handleSubmit}
+            disabled={!isValid || submitting}
+            className="w-full min-h-12 rounded-xl border border-primary bg-primary px-4 py-3 text-center text-base font-medium text-white disabled:cursor-not-allowed disabled:border-disabled disabled:bg-disabled"
+          >
+            제출하기
+          </button>
+        </div>
+      </footer>
     </div>
   );
 }

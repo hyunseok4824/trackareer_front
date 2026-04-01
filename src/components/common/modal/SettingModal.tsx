@@ -575,7 +575,11 @@ function AccountTab() {
         </div>
       </div>
       {isSelectReasonModalOpened && (
-        <CommonModal isOpen={isSelectReasonModalOpened} onClose={onCancelDelete}>
+        <CommonModal
+          isOpen={isSelectReasonModalOpened}
+          onClose={onCancelDelete}
+          mobileFullscreen
+        >
           <DeleteAccountModal onCancel={onCancelDelete} onSubmit={onSubmitDeleteReason} />
         </CommonModal>
       )}

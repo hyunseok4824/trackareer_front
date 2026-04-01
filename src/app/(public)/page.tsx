@@ -125,10 +125,10 @@ export default function Page() {
 
       {auth && (
         <>
-          <main className="flex flex-1 px-4 tablet:px-9 flex-row w-full items-start justify-center gap-8 overflow-hidden">
+          <main className="flex flex-1 px-0 tablet:px-9 flex-row w-full items-start justify-center gap-0 tablet:gap-8 overflow-hidden">
             {/* 캘린더 컬럼: 모바일에서 사이드바 탭이면 숨김 */}
             <div
-              className={`flex-1 py-8 h-full flex-col gap-8 overflow-hidden ${mobileTab === 'sidebar' ? 'hidden tablet:flex' : 'flex'}`}
+              className={`flex-1 py-0 tablet:py-8 h-full flex-col gap-8 overflow-hidden ${mobileTab === 'sidebar' ? 'hidden tablet:flex' : 'flex'}`}
             >
               {/* 공고 입력: 모바일에서 숨김 */}
               <JobPostingInput
@@ -143,7 +143,7 @@ export default function Page() {
 
             {/* 사이드바 컬럼: 모바일에서 캘린더 탭이면 숨김 */}
             <div
-              className={`py-8 h-full w-full tablet:w-auto ${mobileTab === 'calendar' ? 'hidden tablet:block' : 'block'}`}
+              className={`py-0 tablet:py-8 h-full w-full tablet:w-auto ${mobileTab === 'calendar' ? 'hidden tablet:block' : 'block'}`}
             >
               <SideBar />
             </div>

@@ -361,7 +361,7 @@ export default function SideBar() {
 
   return (
     <>
-      <aside className="shrink-0 w-full tablet:w-80 h-full bg-tertiary rounded-3xl shadow-default overflow-hidden flex flex-col">
+      <aside className="shrink-0 w-full tablet:w-80 h-full bg-tertiary tablet:rounded-3xl tablet:shadow-default overflow-hidden flex flex-col">
         <div className="flex">
           {SUBJECT_TABS.map(tab => (
             <button
@@ -499,7 +499,7 @@ export default function SideBar() {
 
       {/* ✅ DetailView 모달 */}
       {modalState && (
-        <CommonModal isOpen={true} onClose={onCloseModal}>
+        <CommonModal isOpen={true} onClose={onCloseModal} mobileFullscreen>
           {modalState.type === 'DETAIL' && (
             <JobPostingDetailModal
               jobId={modalState.jobPostingId}

@@ -176,11 +176,11 @@ export default function CalendarView() {
   }, [todoItems]);
 
   return (
-    <section className="bg-white flex flex-1 min-h-0 flex-col overflow-hidden rounded-3xl shadow-default">
+    <section className="bg-white flex flex-1 min-h-0 flex-col overflow-hidden tablet:rounded-3xl tablet:shadow-default">
       <div className="flex-1 min-h-0 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
         {/* Sticky header — 월 이동 + 요일 행 */}
         <div className="sticky top-0 z-20 border-b border-gray-100 bg-white shadow-[0_1px_0_rgba(15,23,42,0.04)]">
-          <div className="px-4 pt-6 pb-3">
+          <div className="px-2 tablet:px-4 pt-4 tablet:pt-6 pb-3">
             <header className="w-full flex flex-row items-center justify-between gap-3">
               <section className="flex items-center gap-3">
                 <button onClick={prevMonth} className="rounded-lg hover:bg-gray-50">
@@ -204,7 +204,7 @@ export default function CalendarView() {
           </div>
 
           {/* Day-of-week header */}
-          <div className="grid grid-cols-7 border-t border-gray-100 bg-white px-4 py-2">
+          <div className="grid grid-cols-7 border-t border-gray-100 bg-white px-2 tablet:px-4 py-2">
             {DOW_LABELS.map((label, i) => (
               <div
                 key={i}
@@ -220,9 +220,9 @@ export default function CalendarView() {
         </div>
 
         {/* Monthly grid — 각 주 행 높이 고정 */}
-        <div className="px-4 pb-6">
+        <div className="px-0 tablet:px-4 pb-4 tablet:pb-6">
           {weeks.map((week, wi) => (
-            <div key={wi} className="grid grid-cols-7 border-t border-gray-100 h-[7.75rem]">
+            <div key={wi} className="grid grid-cols-7 border-t border-gray-100 h-36 tablet:h-[7.75rem]">
               {week.map(date => {
                 const key = dateToYYYYMMDD(date);
                 const isOutsideMonth = !isSameMonth(date, anchorDate);

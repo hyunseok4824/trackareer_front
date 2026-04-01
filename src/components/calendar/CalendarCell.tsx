@@ -351,7 +351,7 @@ export function CalendarCell({
                         <span
                           className={cls(
                             compact
-                              ? 'text-[11px] leading-4 truncate font-medium cursor-pointer'
+                              ? 'text-[11px] leading-[1.15] line-clamp-2 tablet:line-clamp-1 font-medium cursor-pointer'
                               : 'text-xs truncate font-medium cursor-pointer',
                             isGivenUpItem && 'line-through text-gray-400',
                           )}
@@ -381,7 +381,7 @@ export function CalendarCell({
                       <span
                         className={cls(
                           compact
-                            ? 'text-[11px] leading-4 truncate font-medium cursor-pointer'
+                            ? 'text-[11px] leading-[1.15] line-clamp-2 tablet:line-clamp-1 font-medium cursor-pointer'
                             : 'text-xs truncate font-medium cursor-pointer',
                           it.isDone && 'line-through text-gray-400',
                         )}
@@ -411,7 +411,7 @@ export function CalendarCell({
       </div>
 
       {modalState && (
-        <CommonModal isOpen={true} onClose={onCloseModal}>
+        <CommonModal isOpen={true} onClose={onCloseModal} mobileFullscreen>
           {modalState.type === 'DETAIL' && (
             <JobPostingDetailModal
               jobId={modalState.jobPostingId}

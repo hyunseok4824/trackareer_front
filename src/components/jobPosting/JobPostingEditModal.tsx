@@ -464,8 +464,8 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
 
   return (
     <>
-      <div className="w-full tablet:w-180 max-h-[90dvh] flex flex-col">
-        <header className="w-full p-6 flex flex-row gap-3 items-start border-b-[0.5px] border-muted/25">
+      <div className="w-full tablet:w-180 h-dvh tablet:h-auto tablet:max-h-[90dvh] flex flex-col">
+        <header className="shrink-0 w-full p-6 flex flex-row gap-3 items-start border-b-[0.5px] border-muted/25">
           <div className="flex-1 flex flex-col items-stretch gap-1">
             <h1 className="flex-1 font-bold text-2xl">{MODAL_TEXT[mode].title}</h1>
             <p className="text-base font-regular">{MODAL_TEXT[mode].description}</p>
@@ -485,93 +485,94 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
           </div>
         )}
         {!onFetching && !fetchingErrorMessage && (
-          <div
-            className="flex-1 flex flex-col gap-4 p-6 overflow-y-auto"
-            style={{
-              scrollbarWidth: 'none',
-            }}
-          >
-            <FieldItem label="기업명" required errorMessage={errorMessage.companyName}>
-              <input
-                id="companyName"
-                className="w-full border border-muted focus:border-primary mt-1 rounded-md px-3 py-2 box-border"
-                placeholder="기업명 ex) 삼성전자, 카카오모빌리티..."
-                maxLength={32}
-                value={formData.companyName}
-                onChange={onChangeCompanyName}
-              />
-            </FieldItem>
-            <FieldItem label="포지션" required errorMessage={errorMessage.title}>
-              <input
-                id="jobPosition"
-                className="w-full border border-muted focus:border-primary mt-1 box-border rounded-md px-3 py-2"
-                placeholder="채용 포지션 ex) 프론트 엔드 개발자..."
-                maxLength={64}
-                value={formData.title}
-                onChange={onChangeTitle}
-              />
-            </FieldItem>
-            {formData.mode !== JOB_POSTING_EDIT_MODE.MODIFIED && (
-              <>
-                <FieldItem
-                  label="지원 마감일"
-                  required
-                  errorMessage={
-                    errorMessage.mode === JOB_POSTING_EDIT_MODE.MODIFIED
-                      ? null
-                      : errorMessage.dealine
-                  }
-                >
-                  {/*
-                   * flex-wrap: 320px처럼 좁은 화면에서 시간 입력 + 토글이
-                   * 아래 줄로 자연스럽게 내려가도록 처리
-                   */}
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <input
-                      id="deadlineDate"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="ex) 2026.01.30"
-                      className="flex-1 min-w-36 border border-muted focus:border-primary box-border rounded-md px-3 py-2"
-                      value={formData.deadlineDate}
-                      onChange={onChangeDeadlineDate}
-                    />
-
-                    {includeTime && (
+          <>
+            <div
+              className="flex-1 min-h-0 flex flex-col gap-4 p-6 overflow-y-auto"
+              style={{
+                scrollbarWidth: 'none',
+              }}
+            >
+              <FieldItem label="기업명" required errorMessage={errorMessage.companyName}>
+                <input
+                  id="companyName"
+                  className="w-full border border-muted focus:border-primary mt-1 rounded-md px-3 py-2 box-border"
+                  placeholder="기업명 ex) 삼성전자, 카카오모빌리티..."
+                  maxLength={32}
+                  value={formData.companyName}
+                  onChange={onChangeCompanyName}
+                />
+              </FieldItem>
+              <FieldItem label="포지션" required errorMessage={errorMessage.title}>
+                <input
+                  id="jobPosition"
+                  className="w-full border border-muted focus:border-primary mt-1 box-border rounded-md px-3 py-2"
+                  placeholder="채용 포지션 ex) 프론트 엔드 개발자..."
+                  maxLength={64}
+                  value={formData.title}
+                  onChange={onChangeTitle}
+                />
+              </FieldItem>
+              {formData.mode !== JOB_POSTING_EDIT_MODE.MODIFIED && (
+                <>
+                  <FieldItem
+                    label="지원 마감일"
+                    required
+                    errorMessage={
+                      errorMessage.mode === JOB_POSTING_EDIT_MODE.MODIFIED
+                        ? null
+                        : errorMessage.dealine
+                    }
+                  >
+                    {/*
+                     * flex-wrap: 320px처럼 좁은 화면에서 시간 입력 + 토글이
+                     * 아래 줄로 자연스럽게 내려가도록 처리
+                     */}
+                    <div className="flex flex-wrap items-center gap-2 mt-1">
                       <input
+                        id="deadlineDate"
                         type="text"
                         inputMode="numeric"
-                        placeholder="20:00"
-                        className="border border-muted focus:border-primary box-border w-20 rounded-md px-3 py-2"
-                        value={formData.deadlineTime || ''}
-                        onChange={onChangeDeadlineTime}
+                        placeholder="ex) 2026.01.30"
+                        className="flex-1 min-w-36 border border-muted focus:border-primary box-border rounded-md px-3 py-2"
+                        value={formData.deadlineDate}
+                        onChange={onChangeDeadlineDate}
                       />
-                    )}
 
-                    <div className="flex flex-row items-center gap-1">
-                      <span className="text-sm font-medium">시간 포함</span>
-                      <ToggleSwitchButton
-                        checked={includeTime}
-                        onChange={setIncludeTime}
-                        size="sm"
-                      />
+                      {includeTime && (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="20:00"
+                          className="border border-muted focus:border-primary box-border w-20 rounded-md px-3 py-2"
+                          value={formData.deadlineTime || ''}
+                          onChange={onChangeDeadlineTime}
+                        />
+                      )}
+
+                      <div className="flex flex-row items-center gap-1">
+                        <span className="text-sm font-medium">시간 포함</span>
+                        <ToggleSwitchButton
+                          checked={includeTime}
+                          onChange={setIncludeTime}
+                          size="sm"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </FieldItem>
-              </>
-            )}
-            <FieldItem label="메모" errorMessage={null}>
-              <textarea
-                ref={memoRef}
-                id="memo"
-                className="w-full border border-muted focus:border-primary mt-1 box-border rounded-md px-3 py-2 min-h-20 max-h-64 resize-none overflow-y-auto"
-                placeholder="메모 입력하기"
-                value={formData.memo || ''}
-                onChange={onChangeMemo}
-              />
-            </FieldItem>
-
-            <footer className="flex items-center justify-center mt-4">
+                  </FieldItem>
+                </>
+              )}
+              <FieldItem label="메모" errorMessage={null}>
+                <textarea
+                  ref={memoRef}
+                  id="memo"
+                  className="w-full border border-muted focus:border-primary mt-1 box-border rounded-md px-3 py-2 min-h-20 max-h-64 resize-none overflow-y-auto"
+                  placeholder="메모 입력하기"
+                  value={formData.memo || ''}
+                  onChange={onChangeMemo}
+                />
+              </FieldItem>
+            </div>
+            <div className="shrink-0 px-6 pb-6 pt-2">
               <button
                 className="px-4 py-2 bg-primary text-white rounded-xl w-full h-12 disabled:opacity-60"
                 onClick={mode === JOB_POSTING_EDIT_MODE.MODIFIED ? onSubmitUpdate : onSubmitCreate}
@@ -579,8 +580,8 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
               >
                 {mode === JOB_POSTING_EDIT_MODE.MODIFIED ? '수정하기' : '공고 등록하기'}
               </button>
-            </footer>
-          </div>
+            </div>
+          </>
         )}
       </div>
       <CommonModal isOpen={isLoginModalOpened && !auth} onClose={closeLoginModal}>

@@ -437,8 +437,8 @@ export default function JobPostingDetailModal({ jobId, onEdit, onClose }: Props)
   return (
     <>
       {/* ✅ 기존 initialValues -> view 로만 바꿔주면 됨 */}
-      <div className="w-full tablet:w-180 h-auto max-h-[90dvh] flex flex-col">
-        <header className="w-full p-6 flex flex-row gap-3 items-start border-b-[0.5px] border-muted/25">
+      <div className="w-full tablet:w-180 h-dvh tablet:h-auto tablet:max-h-[90dvh] flex flex-col">
+        <header className="shrink-0 w-full p-6 flex flex-row gap-3 items-start border-b-[0.5px] border-muted/25">
           {jobPosting && (
             <h1 className="flex-1 font-bold text-2xl">
               [{jobPosting.companyName}] {jobPosting.title}

@@ -2,6 +2,12 @@ import { Position } from '@/src/types/position';
 import { ReactNode, useEffect, useEffectEvent, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+/**
+ * tailwind.config.ts의 tablet 브레이크포인트(600px)와 동기화.
+ * 이 값 미만이면 anchored popover 대신 bottom sheet로 렌더합니다.
+ */
+const MOBILE_BREAKPOINT = 600;
+
 interface ContextMenuProps {
   children: ReactNode;
   isOpen: boolean;
@@ -24,6 +30,20 @@ export default function CommonMenu({
   const [parentNode, setParentNode] = useState<HTMLElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  /**
+   * 모바일 감지: viewport < 600px(tablet breakpoint) → bottom sheet 모드
+   * SSR 호환을 위해 초기값은 typeof window 가드 처리.
+   */
+  const [isMobile, setIsMobile] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth < MOBILE_BREAKPOINT : false,
+  );
+
+  useLayoutEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   // ✅ 열리는 순간 바로 position을 박아서 "첫 렌더부터" 정상 위치에 뜨게 함
   const [realPosition, setRealPosition] = useState<Position>({ left: -9999, top: -9999 });
 
@@ -42,11 +62,11 @@ export default function CommonMenu({
     setRealPosition(updated);
   });
 
-  // ✅ isOpen 되는 그 순간 바로 위치 세팅 (autoFit 보정은 다음 layoutEffect에서)
+  // ✅ isOpen 되는 그 순간 바로 위치 세팅 (데스크톱 팝오버 전용)
   useLayoutEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || isMobile) return;
     updateRealPosition(position);
-  }, [isOpen, position]);
+  }, [isOpen, position, isMobile]);
 
   // ESC / outside click 닫기
   useEffect(() => {
@@ -71,10 +91,34 @@ export default function CommonMenu({
     };
   }, [isOpen, onClose]);
 
-  // ✅ autoFit 보정: 실제 렌더된 rect 기준으로 viewport 밖이면 flip
+  /**
+   * 모바일 bottom sheet가 열릴 때 배경 스크롤 잠금.
+   * iOS Safari는 overflow:hidden이 body에 적용되지 않으므로
+   * position:fixed + top 저장 방식으로 처리합니다.
+   */
+  useEffect(() => {
+    if (!isOpen || !isMobile) return;
+
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [isOpen, isMobile]);
+
+  // ✅ autoFit 보정: 데스크톱 팝오버 전용 (모바일은 bottom sheet라 불필요)
   useLayoutEffect(() => {
     if (!isOpen) return;
     if (!autoFit) return;
+    if (isMobile) return;
 
     const el = menuRef.current;
     if (!el) return;
@@ -135,10 +179,39 @@ export default function CommonMenu({
     else if (right !== undefined && bottom !== undefined) next = { right, bottom };
 
     updateRealPosition(next);
-  }, [isOpen, autoFit, position]);
+  }, [isOpen, autoFit, position, isMobile]);
 
   if (!isOpen || !parentNode) return null;
 
+  /**
+   * 모바일: bottom sheet 방식
+   * - 화면 하단에서 슬라이드업, 전체 너비
+   * - 딤 배경 탭 시 닫기
+   * - className(width 등)은 데스크톱 팝오버용이므로 여기서는 적용 안 함
+   * - safe-area-inset-bottom 으로 iOS 홈 인디케이터 대응
+   */
+  if (isMobile) {
+    return createPortal(
+      <div className="fixed inset-0 z-50" aria-hidden={!isOpen}>
+        {/* 딤 배경 */}
+        <div className="absolute inset-0 bg-black/30" />
+        {/* Bottom sheet */}
+        <div
+          ref={menuRef}
+          role="menu"
+          className="absolute bottom-0 inset-x-0 bg-white rounded-t-2xl overflow-y-auto max-h-[85dvh] outline-none"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          {children}
+        </div>
+      </div>,
+      parentNode,
+    );
+  }
+
+  /**
+   * 데스크톱: 기존 anchored popover 방식 (변경 없음)
+   */
   return createPortal(
     <div className="fixed inset-0 z-50" aria-hidden={!isOpen}>
       <div

@@ -169,7 +169,7 @@ export default function Page() {
         </>
       )}
 
-      <CommonModal isOpen={modalStatus.type !== 'CLOSED'} onClose={closeModal}>
+      <CommonModal isOpen={modalStatus.type !== 'CLOSED'} onClose={closeModal} mobileFullscreen>
         {modalStatus.type === JOB_POSTING_EDIT_MODE.SYNTHETIC && (
           <JobPostingEditModal
             mode={JOB_POSTING_EDIT_MODE.SYNTHETIC}

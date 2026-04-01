@@ -121,6 +121,15 @@ export default function StagePassMenu({
 
   const inputDisabled = mode !== 'NEXT_STAGE';
 
+  const handleSelectMode = (nextMode: Mode) => {
+    if (mode === nextMode) return;
+    setMode(nextMode);
+    setEventError(null);
+    setExpectedError(null);
+    setNameError(null);
+    setTypeError(null);
+  };
+
   const initialize = useEffectEvent(() => {
     setMode('NEXT_STAGE');
     setStageType('');
@@ -147,43 +156,36 @@ export default function StagePassMenu({
       autoFit
       className="w-70 h-auto rounded-2xl shadow shadow-black/25 border border-gray-100 overflow-hidden"
     >
-      <div className="p-3">
-        <header className="flex items-center justify-between">
-          <div className="text-xs font-bold">합격 처리</div>
+      {/*
+       * 모바일 bottom sheet / 데스크톱 팝오버 공용 레이아웃
+       * - 패딩: 모바일 p-4, 데스크톱 p-3
+       * - 입력 높이: 모바일 h-9(36px), 데스크톱 h-7(28px)
+       * - 날짜/시간 행: flex-wrap → 좁은 화면에서 시간+토글이 아래로 내려감
+       * - 닫기 버튼: 모바일 min-w/h-9 확보
+       */}
+      <div className="p-4 tablet:p-3">
+        <header className="flex items-center justify-between border-b border-gray-100 tablet:border-0 pb-3 tablet:pb-0">
+          <div className="text-sm tablet:text-xs font-bold">합격 처리</div>
           <button
             type="button"
             onClick={onClose}
-            className="w-2 h-2 flex items-center justify-center rounded-lg text-disabled text-xs"
+            className="min-w-9 min-h-9 tablet:min-w-0 tablet:min-h-0 tablet:w-2 tablet:h-2 flex items-center justify-center rounded-lg text-disabled text-xs hover:bg-gray-50"
             aria-label="닫기"
           >
             ✕
           </button>
         </header>
 
-        <div className="mt-3 space-y-6">
+        <div className="mt-4 tablet:mt-3 space-y-5 tablet:space-y-6">
           <div></div>
           {/* ✅ 라디오 1) 다음 전형 추가 */}
           <div
             className="flex items-start gap-2"
-            onClickCapture={() => {
-              if (mode === 'NEXT_STAGE') return;
-              setMode('NEXT_STAGE');
-              setEventError(null);
-              setExpectedError(null);
-              setNameError(null);
-              setTypeError(null);
-            }}
+            onClick={() => handleSelectMode('NEXT_STAGE')}
           >
             <CheckedCircleBox
               checked={mode === 'NEXT_STAGE'}
-              onClick={() => {
-                setMode('NEXT_STAGE');
-                setEventError(null);
-                setExpectedError(null);
-                setNameError(null);
-                setTypeError(null);
-              }}
-              className="w-4 h-4 shrink-0"
+              className="w-5 h-5 tablet:w-4 tablet:h-4 shrink-0"
             />
 
             <div className="flex-1 min-w-0">
@@ -201,7 +203,7 @@ export default function StagePassMenu({
                   }}
                   disabled={inputDisabled}
                   className={cls(
-                    'h-7 rounded-lg border px-2 text-xs text-center outline-none',
+                    'h-9 tablet:h-7 rounded-lg border px-2 text-xs text-center outline-none',
                     inputDisabled
                       ? 'border-gray-200 bg-gray-100 text-gray-400'
                       : typeError
@@ -231,7 +233,7 @@ export default function StagePassMenu({
                   }}
                   disabled={inputDisabled}
                   className={cls(
-                    'flex-1 h-7 rounded-lg border px-2 text-xs outline-none',
+                    'flex-1 h-9 tablet:h-7 rounded-lg border px-2 text-xs outline-none',
                     inputDisabled
                       ? 'border-gray-200 bg-gray-100 text-gray-400'
                       : nameError
@@ -245,8 +247,12 @@ export default function StagePassMenu({
               <div className={cls('mt-3 space-y-4', inputDisabled && 'opacity-60')}>
                 {/* ✅ 전형 일시 */}
                 <div className="space-y-1">
-                  <div className="text-[11px] text-gray-700">전형 일시</div>
-                  <div className="flex items-center gap-1">
+                  <div className="text-xs tablet:text-[11px] text-gray-700">전형 일시</div>
+                  {/*
+                   * flex-wrap: 좁은 화면에서 시간 input + 토글이
+                   * 다음 줄로 자연스럽게 내려가도록 처리
+                   */}
+                  <div className="flex flex-wrap items-center gap-1">
                     <input
                       value={eventDate}
                       onChange={e => {
@@ -259,8 +265,10 @@ export default function StagePassMenu({
                         setEventError(iso ? null : '유효하지 않은 날짜/시간입니다');
                       }}
                       disabled={inputDisabled}
+                      inputMode="numeric"
                       className={cls(
-                        'w-23 h-7 rounded-lg border px-2 text-xs outline-none',
+                        'flex-1 min-w-24 tablet:flex-none tablet:w-23',
+                        'h-9 tablet:h-7 rounded-lg border px-2 text-xs outline-none',
                         inputDisabled
                           ? 'border-gray-200 bg-gray-100 text-gray-400'
                           : eventError
@@ -283,8 +291,10 @@ export default function StagePassMenu({
                           setEventError(iso ? null : '시간 형식이 올바르지 않아요 (예: 20:00)');
                         }}
                         disabled={inputDisabled}
+                        inputMode="numeric"
                         className={cls(
-                          'w-15 h-7 rounded-lg border px-2 text-xs outline-none',
+                          'w-16 tablet:w-15',
+                          'h-9 tablet:h-7 rounded-lg border px-2 text-xs outline-none',
                           inputDisabled
                             ? 'border-gray-200 bg-gray-100 text-gray-400'
                             : eventError
@@ -296,7 +306,7 @@ export default function StagePassMenu({
                     )}
 
                     <div className="flex items-center gap-2 ml-1">
-                      <span className="text-[11px] text-gray-800">시간</span>
+                      <span className="text-xs tablet:text-[11px] text-gray-800">시간</span>
                       <ToggleSwitch
                         checked={eventHasTime}
                         onChange={next => {
@@ -377,7 +387,7 @@ export default function StagePassMenu({
 
                 {/* 에러 메시지 */}
                 {!inputDisabled && (typeError || nameError || eventError || expectedError) && (
-                  <p className="text-[10px] text-red-500">
+                  <p className="text-xs tablet:text-[10px] text-red-500">
                     {typeError ?? nameError ?? eventError ?? expectedError}
                   </p>
                 )}
@@ -388,33 +398,20 @@ export default function StagePassMenu({
           {/* ✅ 라디오 2) 최종합격 */}
           <div
             className="flex items-start gap-2"
-            onClickCapture={() => {
-              if (mode === 'NEXT_STAGE') return;
-              setMode('NEXT_STAGE');
-              setEventError(null);
-              setExpectedError(null);
-              setNameError(null);
-              setTypeError(null);
-            }}
+            onClick={() => handleSelectMode('FINAL_PASSED')}
           >
             <CheckedCircleBox
               checked={mode === 'FINAL_PASSED'}
-              onClick={() => {
-                setMode('FINAL_PASSED');
-                setEventError(null);
-                setExpectedError(null);
-                setNameError(null);
-                setTypeError(null);
-              }}
-              className="w-4 h-4 shrink-0"
+              className="w-5 h-5 tablet:w-4 tablet:h-4 shrink-0"
             />
-            <div className="text-xs font-regular text-gray-900">최종합격</div>
+            <div className="text-sm tablet:text-xs font-regular text-gray-900">최종합격</div>
           </div>
 
+          {/* 등록 버튼: 모바일 h-11(44px), 데스크톱 h-8(32px) */}
           <button
             type="button"
             className={cls(
-              'w-full h-8 rounded-xl text-sm font-medium transition bg-primary text-white',
+              'w-full h-11 tablet:h-8 rounded-xl text-sm font-medium transition bg-primary text-white',
             )}
             onClick={() => {
               if (mode === 'FINAL_PASSED') {

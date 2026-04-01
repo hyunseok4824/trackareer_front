@@ -197,10 +197,10 @@ export default function SettingsModal({
   };
 
   return (
-    <div className="relative z-10 w-240 h-150 bg-white rounded-3xl overflow-hidden">
+    <div className="relative z-10 w-full h-dvh tablet:w-240 tablet:h-150 bg-white overflow-hidden">
       <div className="flex h-full">
-        {/* Left nav */}
-        <aside className="w-60 bg-background border-r border-gray-100 px-6 py-10 relative">
+        {/* Left nav — tablet 이상에서만 표시 */}
+        <aside className="hidden tablet:block w-60 bg-background border-r border-gray-100 px-6 py-10 relative">
           <div className="space-y-2">
             <TabItem
               label="프로필"
@@ -223,18 +223,42 @@ export default function SettingsModal({
         </aside>
 
         {/* Right content */}
-        <main className="flex-1 h-full flex flex-col">
-          <header className="w-full h-28 flex flex-row items-end justify-between px-8 py-8">
-            <h1 className="text-2xl font-medium text-text">{tabTitle}</h1>
+        <main className="flex-1 h-full flex flex-col min-w-0">
+          <header className="shrink-0 w-full h-14 tablet:h-28 flex flex-row items-center tablet:items-end justify-between px-6 tablet:px-8 py-4 tablet:py-8 border-b border-gray-100 tablet:border-b-0">
+            <h1 className="text-xl tablet:text-2xl font-medium text-text">{tabTitle}</h1>
             <button
               type="button"
               onClick={onClose}
               aria-label="닫기"
-              className="absolute right-6 top-6 h-10 w-10 rounded-full flex items-center justify-center text-text/60 hover:bg-tertiary"
+              className="h-10 w-10 rounded-full flex items-center justify-center text-text/60 hover:bg-tertiary"
             >
               <CloseIcon width={24} height={24} />
             </button>
           </header>
+
+          {/* 모바일 전용 수평 탭 바 */}
+          <div className="tablet:hidden shrink-0 flex flex-row border-b border-gray-100">
+            {(
+              [
+                { key: 'PROFILE' as SettingsTab, label: '프로필' },
+                { key: 'NOTIFICATIONS' as SettingsTab, label: '알림' },
+                { key: 'ACCOUNT' as SettingsTab, label: '계정' },
+              ]
+            ).map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => onChangeTab(key)}
+                className={cx(
+                  'flex-1 py-3 text-sm font-medium',
+                  tab === key ? 'text-primary border-b-2 border-primary' : 'text-text/50',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <div className="relative w-full flex-1 flex flex-col overflow-y-hidden">
             {tab === 'PROFILE' && !auth?.profile && <LoadingView />}
             {tab === 'PROFILE' && auth?.profile && (
@@ -337,8 +361,8 @@ function ProfileTab({
 
   return (
     <>
-      <div className="w-full h-full flex flex-col overflow-x-scroll">
-        <div className="w-full px-8 py-6 pb-40 flex flex-col gap-8">
+      <div className="w-full h-full flex flex-col overflow-y-auto overflow-x-hidden">
+        <div className="w-full px-6 tablet:px-8 py-6 pb-40 flex flex-col gap-8">
           {/* Email */}
           <div>
             <div className="text-sm font-semibold text-text mb-2">이메일</div>
@@ -389,7 +413,10 @@ function ProfileTab({
 
       {/* Bottom action bar */}
       {isProfileChanged && (
-        <footer className="absolute bottom-0 left-0 right-0 px-8 pb-6 pt-4 bg-linear-to-t from-white via-white to-white/0">
+        <footer
+          className="absolute bottom-0 left-0 right-0 px-6 tablet:px-8 pt-4 bg-linear-to-t from-white via-white to-white/0"
+          style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
+        >
           <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-white pl-6 pr-2 py-2">
             <p className="flex-1 text-sm font-medium text-text">변경사항이 있어요</p>
 
@@ -445,7 +472,7 @@ function NotificationsTab({
     }, [notificationList]);
 
   return (
-    <div className="pl-8 pr-12 py-6 w-full flex flex-col gap-12">
+    <div className="px-6 tablet:pl-8 tablet:pr-12 py-6 w-full h-full overflow-y-auto flex flex-col gap-12">
       <div className="w-full flex flex-col gap-8">
         <div className="text-sm font-medium text-text">브라우저 알림</div>
         <Toggle
@@ -531,7 +558,7 @@ function AccountTab() {
 
   return (
     <>
-      <div className="pl-8 pr-12 py-6 w-full flex flex-col">
+      <div className="px-6 tablet:pl-8 tablet:pr-12 py-6 w-full h-full overflow-y-auto flex flex-col">
         <div className="flex flex-col items-start">
           <div className="text-sm font-medium text-text">계정 삭제</div>
           <div className="mt-2 text-xs font-normal text-text/50">

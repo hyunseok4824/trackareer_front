@@ -24,18 +24,50 @@ export default function JobPostingInput({
   const closeJobSiteListModal = () => setJobSiteListModalOpened(false);
 
   const handleSubmit = async () => {
-    if (!url) {
+    if (!url.trim()) {
       alert('공고의 URL을 입력해주세요.');
       return;
     }
 
-    const pathName = url.split('?')[0].split('#')[0];
-    const pathPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-./]*)?$/;
+    /*
+     * URL 정규화 및 검증
+     *
+     * 기존 regex(/^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w\-./]*)?$/)는
+     * %, (, ), ~, +, = 등 실제 URL에 등장하는 문자를 거부해서
+     * 모바일 웹 공유 링크 / 앱 공유 링크 / tracking parameter 포함 URL이
+     * 자동 추출에 실패하는 원인이었습니다.
+     *
+     * URL 생성자는 RFC 3986에 따라 유효한 모든 URL을 허용하므로
+     * 아래 패턴들을 모두 처리합니다.
+     *   - 프로토콜 없는 URL (m.saramin.co.kr/...)  → https:// 자동 추가
+     *   - 모바일 전용 서브도메인 (m., mobile. 등)
+     *   - 앱 공유 / 단축 URL (bit.ly, url.kr 등)  → 스크레이퍼가 redirect 추적
+     *   - tracking query parameter (?utm_source=... 등)
+     *   - 인코딩된 문자(%20, %ED%95 등)가 포함된 경로
+     */
+    const rawUrl = url.trim();
+    const urlWithProtocol = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`;
 
-    if (!pathPattern.test(pathName)) {
+    let parsedUrl: URL;
+    try {
+      parsedUrl = new URL(urlWithProtocol);
+    } catch {
       alert('공고의 URL을 올바르게 입력해주세요.');
       return;
     }
+
+    // http / https 만 허용 (javascript:, data: 등 차단)
+    if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+      alert('공고의 URL을 올바르게 입력해주세요.');
+      return;
+    }
+
+    // 호스트가 없는 경우 (예: "https:///path") 차단
+    if (!parsedUrl.hostname || parsedUrl.hostname === 'localhost') {
+      alert('공고의 URL을 올바르게 입력해주세요.');
+      return;
+    }
+
     onSubmit();
   };
 

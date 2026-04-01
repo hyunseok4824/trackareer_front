@@ -11,7 +11,7 @@ import { useJobPosting } from '@/src/hook/useJobPosting';
 import { useAuthStore } from '@/src/stores/authStore';
 import { JOB_POSTING_EDIT_MODE, JobPostingEditMode, STAGE_TYPE } from '@/src/types/jobPosting';
 import { formatDate, formatTime } from '@/src/utils/dateFormatters';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export type JobPostingCreateFormData = {
   mode: typeof JOB_POSTING_EDIT_MODE.SYNTHETIC | typeof JOB_POSTING_EDIT_MODE.DIRECT;
@@ -260,9 +260,17 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
     setErrorMessage(prev => ({ ...prev, title: newValue ? null : '포지션을 입력해주세요.' }));
   };
 
+  // 메모 textarea 자동 높이 조절을 위한 ref
+  const memoRef = useRef<HTMLTextAreaElement>(null);
+
   const onChangeMemo = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value.trimStart();
     setFormData(prev => ({ ...prev, memo: newValue }));
+
+    // 입력 내용에 따라 textarea 높이 자동 확장 (max-h-64 = 256px 초과 시 내부 스크롤)
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
   };
 
   // Deadline date/time
@@ -514,13 +522,17 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
                       : errorMessage.dealine
                   }
                 >
-                  <div className="flex flex-row space-x-2">
+                  {/*
+                   * flex-wrap: 320px처럼 좁은 화면에서 시간 입력 + 토글이
+                   * 아래 줄로 자연스럽게 내려가도록 처리
+                   */}
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
                     <input
                       id="deadlineDate"
                       type="text"
                       inputMode="numeric"
                       placeholder="ex) 2026.01.30"
-                      className="border border-muted focus:border-primary mt-1 box-border rounded-md px-3 py-2"
+                      className="flex-1 min-w-36 border border-muted focus:border-primary box-border rounded-md px-3 py-2"
                       value={formData.deadlineDate}
                       onChange={onChangeDeadlineDate}
                     />
@@ -530,13 +542,13 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
                         type="text"
                         inputMode="numeric"
                         placeholder="20:00"
-                        className="border border-muted focus:border-primary mt-1 box-border w-18 rounded-md px-3 py-2"
+                        className="border border-muted focus:border-primary box-border w-20 rounded-md px-3 py-2"
                         value={formData.deadlineTime || ''}
                         onChange={onChangeDeadlineTime}
                       />
                     )}
 
-                    <div className="flex flex-row items-center justify-center space-x-1 ml-2">
+                    <div className="flex flex-row items-center gap-1">
                       <span className="text-sm font-medium">시간 포함</span>
                       <ToggleSwitchButton
                         checked={includeTime}
@@ -550,8 +562,9 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
             )}
             <FieldItem label="메모" errorMessage={null}>
               <textarea
+                ref={memoRef}
                 id="memo"
-                className="w-full border border-muted focus:border-primary mt-1 box-border rounded-md px-3 py-2 min-h-19.5 resize-none overflow-hidden"
+                className="w-full border border-muted focus:border-primary mt-1 box-border rounded-md px-3 py-2 min-h-20 max-h-64 resize-none overflow-y-auto"
                 placeholder="메모 입력하기"
                 value={formData.memo || ''}
                 onChange={onChangeMemo}

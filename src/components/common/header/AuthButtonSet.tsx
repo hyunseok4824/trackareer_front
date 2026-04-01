@@ -117,7 +117,7 @@ function ProfileButton({ userName }: { userName: string }) {
       <CommonMenu isOpen={isMenuOpen} position={menuPosition} autoFit={true} onClose={closeModal}>
         <ProfileMenu onOpenSettingModal={onOpenSettingModal} />
       </CommonMenu>
-      <CommonModal isOpen={isSettingModalOpen} onClose={onCloseSettingModal}>
+      <CommonModal isOpen={isSettingModalOpen} onClose={onCloseSettingModal} mobileFullscreen>
         <SettingsModal
           isProfileChanged={isProfileChanged}
           onClose={onCloseSettingModal}

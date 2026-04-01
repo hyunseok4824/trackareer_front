@@ -29,10 +29,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   return (
     <>
       {children}
-      <CommonModal isOpen={modalState === 'agreement'} closeable={false}>
+      <CommonModal isOpen={modalState === 'agreement'} closeable={false} mobileFullscreen>
         <AgreementModal />
       </CommonModal>
-      <CommonModal isOpen={modalState === 'onboarding'} closeable={false}>
+      <CommonModal isOpen={modalState === 'onboarding'} closeable={false} mobileFullscreen>
         <Onboarding3Step />
       </CommonModal>
     </>

@@ -97,84 +97,93 @@ export default function AgreementModal() {
 
   return (
     <>
-      <div className="w-120 h-150 flex flex-col p-8 pb-12 justify-center items-center">
-        <header className="w-full h-20 relative flex">
-          {/* 취소 버튼 */}
-          <button className="absolute left-0 top-0 text-xs text-muted" onClick={logout}>
+      {/*
+       * 모바일: w-full h-dvh (CommonModal mobileFullscreen과 함께 전체화면)
+       * tablet+: w-120 h-150 (기존 팝업 스타일)
+       * 레이아웃: header(shrink-0) + content(flex-1 overflow-y-auto) + footer(shrink-0)
+       * → 콘텐츠가 길어져도 버튼이 항상 화면 안에 위치
+       */}
+      <div className="w-full h-dvh tablet:w-120 tablet:h-150 flex flex-col overflow-hidden">
+        {/* 헤더: 로고 + 로그아웃 */}
+        <header className="shrink-0 px-6 tablet:px-8 pt-8 pb-4 flex items-center justify-between">
+          <FullLogo width={160} height={27} />
+          <button className="text-xs text-muted" onClick={logout}>
             로그아웃
           </button>
-          <FullLogo
-            className="absolute top-11 left-1/2 transform -translate-x-1/2"
-            width={216}
-            height={36}
-          />
         </header>
-        <div className="w-80 flex-1 flex flex-col items-stretch">
-          <div className="flex-1 flex flex-col justify-center items-stretch ">
-            <p className="text-base font-regular text-black">
-              서비스 이용을 위해 아래 항목에 동의해주세요.
-            </p>
-            <div className="mt-8 flex flex-col items-center justify-center">
-              <section className="w-full">
-                {/* 전체동의 */}
-                <button
-                  type="button"
-                  className="flex flex-row gap-2 items-center"
-                  onClick={handleSetAll}
-                >
-                  <CheckedCircleBox
-                    className="w-6 h-6"
-                    checked={Object.values(terms).every(Boolean)}
-                  />
-                  <p className="font-medium text-text text-lg leading-5">전체 동의하기</p>
-                </button>
 
-                {/* 항목 리스트 */}
-                <ul className="w-full mt-6 flex flex-col gap-2">
-                  {TERMS.map(item => {
-                    return (
-                      <li key={item.key} className="flex flex-row gap-2 py-1">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleTerm(item.key)}
-                          className="flex-1 flex flex-row gap-2 "
-                        >
-                          <CheckedIcon checked={terms[item.key]} />
-                          <div className="flex-1 flex flex-col gap-1 items-stretch">
-                            <p className="text-sm font-normal text-text text-left">
-                              {item.title}{' '}
-                              <span className={'text-primary'}>
-                                {item.required ? '(필수)' : '(선택)'}
-                              </span>
+        {/* 스크롤 가능한 본문 영역 */}
+        <div className="flex-1 overflow-y-auto px-6 tablet:px-8 py-4">
+          <p className="text-base font-regular text-black">
+            서비스 이용을 위해 아래 항목에 동의해주세요.
+          </p>
+          <div className="mt-8">
+            <section className="w-full">
+              {/* 전체동의 */}
+              <button
+                type="button"
+                className="flex flex-row gap-2 items-center"
+                onClick={handleSetAll}
+              >
+                <CheckedCircleBox
+                  className="w-6 h-6"
+                  checked={Object.values(terms).every(Boolean)}
+                />
+                <p className="font-medium text-text text-lg leading-5">전체 동의하기</p>
+              </button>
+
+              {/* 항목 리스트 */}
+              <ul className="w-full mt-6 flex flex-col gap-2">
+                {TERMS.map(item => {
+                  return (
+                    <li key={item.key} className="flex flex-row gap-2 py-1">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleTerm(item.key)}
+                        className="flex-1 flex flex-row gap-2"
+                      >
+                        <CheckedIcon checked={terms[item.key]} />
+                        <div className="flex-1 flex flex-col gap-1 items-stretch">
+                          <p className="text-sm font-normal text-text text-left">
+                            {item.title}{' '}
+                            <span className={'text-primary'}>
+                              {item.required ? '(필수)' : '(선택)'}
+                            </span>
+                          </p>
+                          {item.description && (
+                            <p className="text-xs text-normal text-muted text-left">
+                              {item.description}
                             </p>
-                            {item.description && (
-                              <p className="text-xs text-normal text-muted  text-left">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                        </button>
-                        <Link
-                          href={item.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="ml-1 flex items-center justify-center"
-                          aria-label={`${item.title} 보기`}
-                        >
-                          <ChevronRightIcon className="text-muted" width={16} height={16} />
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            </div>
+                          )}
+                        </div>
+                      </button>
+                      <Link
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-1 flex items-center justify-center"
+                        aria-label={`${item.title} 보기`}
+                      >
+                        <ChevronRightIcon className="text-muted" width={16} height={16} />
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
           </div>
+        </div>
+
+        {/* 하단 버튼: safe-area 대응 */}
+        <div
+          className="shrink-0 px-6 tablet:px-8 pt-4 pb-8"
+          style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+        >
           <button
             type="button"
             disabled={!requiredChecked}
             onClick={onSubmit}
-            className={`py-4 w-full rounded-xl text-base font-medium text-white bg-primary disabled:bg-disabled disabled:cursor-not-allowed`}
+            className="py-4 w-full rounded-xl text-base font-medium text-white bg-primary disabled:bg-disabled disabled:cursor-not-allowed"
           >
             시작하기
           </button>

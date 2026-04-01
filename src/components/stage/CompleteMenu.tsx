@@ -119,20 +119,26 @@ export default function StageCompleteMenu({
       autoFit
       className="w-46.5 h-auto rounded-2xl shadow shadow-black/25 border border-gray-100 overflow-hidden"
     >
-      <div className="p-2">
-        <header className="flex items-center justify-between">
-          <div className="text-xs font-bold">결과 발표 예정일</div>
+      {/*
+       * 모바일 bottom sheet / 데스크톱 팝오버 공용 레이아웃
+       * - 패딩: 모바일 p-4, 데스크톱 p-2
+       * - 입력 높이: 모바일 h-9(36px) → 터치 가능, 데스크톱 h-6(24px)
+       * - 닫기 버튼: 모바일 min-w/h-9 → 터치 가능
+       */}
+      <div className="p-4 tablet:p-2">
+        <header className="flex items-center justify-between border-b border-gray-100 tablet:border-0 pb-3 tablet:pb-0">
+          <div className="text-sm tablet:text-xs font-bold">결과 발표 예정일</div>
           <button
             type="button"
             onClick={onClose}
-            className="w-2 h-2 flex items-center justify-center rounded-lg text-disabled text-xs"
+            className="min-w-9 min-h-9 tablet:min-w-0 tablet:min-h-0 tablet:w-2 tablet:h-2 flex items-center justify-center rounded-lg text-disabled text-xs hover:bg-gray-50"
             aria-label="닫기"
           >
             ✕
           </button>
         </header>
 
-        <div className="mt-2 space-y-2">
+        <div className="mt-3 tablet:mt-2 space-y-3 tablet:space-y-2">
           <div className="flex items-center gap-2 w-full">
             <CheckedCircleBox
               checked={!isSeparateNotice}
@@ -141,10 +147,11 @@ export default function StageCompleteMenu({
                 setDateError(null);
                 setTimeError(null);
               }}
-              className="w-4 h-4 shrink-0"
+              className="w-5 h-5 tablet:w-4 tablet:h-4 shrink-0"
             />
 
-            <div className="flex w-full items-center gap-1">
+            {/* 날짜/시간 입력 — flex-wrap으로 좁은 화면에서 줄바꿈 허용 */}
+            <div className="flex flex-wrap items-center gap-1 flex-1">
               <input
                 value={date}
                 onChange={e => {
@@ -152,13 +159,14 @@ export default function StageCompleteMenu({
                   setDateError(null);
                 }}
                 onBlur={() => {
-                  // formatDate는 이미 형태를 정리해주지만, "실제 달력 유효성"은 별도 체크
                   const iso = toEventAtISOString(date);
                   setDateError(iso ? null : '유효하지 않은 날짜입니다.');
                 }}
                 disabled={inputDisabled}
+                inputMode="numeric"
                 className={cls(
-                  'w-20 h-6 rounded-lg border px-2 text-xs outline-none',
+                  'flex-1 min-w-20 tablet:flex-none tablet:w-20',
+                  'h-9 tablet:h-6 rounded-lg border px-2 text-xs outline-none',
                   inputDisabled
                     ? 'border-gray-200 bg-gray-100 text-gray-400'
                     : dateError
@@ -180,8 +188,10 @@ export default function StageCompleteMenu({
                     setTimeError(iso ? null : '시간 형식이 올바르지 않아요. (예: 20:00)');
                   }}
                   disabled={inputDisabled}
+                  inputMode="numeric"
                   className={cls(
-                    'w-13 h-6 rounded-lg border px-2 text-xs outline-none',
+                    'w-16 tablet:w-13',
+                    'h-9 tablet:h-6 rounded-lg border px-2 text-xs outline-none',
                     inputDisabled
                       ? 'border-gray-200 bg-gray-100 text-gray-400'
                       : timeError
@@ -194,8 +204,8 @@ export default function StageCompleteMenu({
             </div>
           </div>
 
-          <div className="flex items-center pl-6 pr-1">
-            <div className="text-xs text-gray-900 pr-3">시간 포함</div>
+          <div className="flex items-center pl-7 tablet:pl-6 pr-1 gap-3 tablet:gap-0">
+            <div className="text-sm tablet:text-xs text-gray-900 tablet:pr-3">시간 포함</div>
             <ToggleSwitch
               checked={hasTime}
               onChange={next => {
@@ -207,7 +217,9 @@ export default function StageCompleteMenu({
           </div>
 
           {!inputDisabled && (dateError || (hasTime && timeError)) && (
-            <p className="text-[10px] text-red-500 pl-6">{dateError ?? timeError}</p>
+            <p className="text-xs tablet:text-[10px] text-red-500 pl-7 tablet:pl-6">
+              {dateError ?? timeError}
+            </p>
           )}
 
           <div className="flex items-center gap-2">
@@ -218,15 +230,16 @@ export default function StageCompleteMenu({
                 setDateError(null);
                 setTimeError(null);
               }}
-              className="w-4 h-4 shrink-0"
+              className="w-5 h-5 tablet:w-4 tablet:h-4 shrink-0"
             />
-            <div className="text-xs font-regular text-gray-900">별도 안내</div>
+            <div className="text-sm tablet:text-xs font-regular text-gray-900">별도 안내</div>
           </div>
 
+          {/* 등록 버튼: 모바일 h-11(44px), 데스크톱 h-7(28px) */}
           <button
             type="button"
             className={cls(
-              'w-full h-7 rounded-xl text-sm font-medium transition bg-primary text-white',
+              'w-full h-11 tablet:h-7 rounded-xl text-sm font-medium transition bg-primary text-white',
             )}
             onClick={() => {
               if (isSeparateNotice) {

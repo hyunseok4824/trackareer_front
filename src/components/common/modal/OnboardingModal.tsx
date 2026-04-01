@@ -131,26 +131,31 @@ export default function Onboarding3Step() {
 
   return (
     <>
-      <div className="w-180 h-120 p-9 flex flex-col items-stretch">
-        {/* Header */}
-        <header className="flex items-start justify-between">
-          <FullLogo width={144} height={24} />
+      {/*
+       * 모바일: w-full h-dvh (CommonModal mobileFullscreen과 함께 전체화면)
+       * tablet+: w-180 h-120 (기존 팝업 스타일)
+       * 레이아웃: header/progress(shrink-0) + content(flex-1 overflow-y-auto) + footer(shrink-0)
+       * → 칩이 많아도 내부 스크롤, 하단 버튼은 항상 노출
+       */}
+      <div className="w-full h-dvh tablet:w-180 tablet:h-120 flex flex-col overflow-hidden">
+        {/* Header + Progress: 항상 상단 고정 */}
+        <div className="shrink-0 px-6 tablet:p-9 tablet:pb-0 pt-8">
+          <header className="flex items-start justify-between">
+            <FullLogo width={144} height={24} />
+            <button type="button" onClick={logout} className="text-xs font-normal text-disabled">
+              로그아웃 후 닫기
+            </button>
+          </header>
+          <ProgressBars step={step} />
+        </div>
 
-          <button type="button" onClick={logout} className="text-xs font-normal text-disabled">
-            로그아웃 후 닫기
-          </button>
-        </header>
-
-        {/* Progress */}
-        <ProgressBars step={step} />
-
-        {/* Content */}
-        <main className="mt-4 flex-1 flex flex-col items-stretch">
+        {/* 스크롤 가능한 칩 선택 영역 */}
+        <main className="flex-1 overflow-y-auto px-6 tablet:px-9 pt-4 pb-2">
           <h1 className="text-base font-bold text-text">{title}</h1>
 
-          {/* Step bodies */}
+          {/* Step bodies: 고정 너비 제거 → w-full로 모바일 overflow 방지 */}
           {step === 1 && (
-            <div className="mt-6 w-70 flex flex-wrap gap-3 gap-y-2">
+            <div className="mt-6 w-full flex flex-wrap gap-3 gap-y-2">
               {JOB_CATEGORIES.map(item => (
                 <Chip<AuthJobType>
                   key={item}
@@ -164,14 +169,13 @@ export default function Onboarding3Step() {
           )}
 
           {step === 2 && (
-            <div className="mt-6 w-80 flex flex-wrap gap-3 gap-y-2">
+            <div className="mt-6 w-full flex flex-wrap gap-3 gap-y-2">
               {INDUSTRIES.map(item => (
                 <Chip<AuthIndustryType>
                   key={item}
                   label={item}
                   selected={industryInterests.includes(item)}
                   onClick={() => toggleMulti(item, industryInterests, setIndustryInterests)}
-                  // 스샷처럼 선택된 칩은 진한 블루 채움
                   variant="filled"
                 />
               ))}
@@ -179,7 +183,7 @@ export default function Onboarding3Step() {
           )}
 
           {step === 3 && (
-            <div className="mt-6 w-50 flex flex-col gap-3">
+            <div className="mt-6 w-full flex flex-col gap-3">
               {PURPOSES.map(item => (
                 <Chip<AuthPurposeType>
                   key={item}
@@ -193,7 +197,11 @@ export default function Onboarding3Step() {
           )}
         </main>
 
-        <footer className="flex items-center justify-end gap-6">
+        {/* 하단 네비게이션 버튼: safe-area 대응, 항상 고정 */}
+        <footer
+          className="shrink-0 px-6 tablet:px-9 pt-4 pb-8 flex items-center justify-end gap-6"
+          style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }}
+        >
           {step !== 1 && (
             <button
               type="button"

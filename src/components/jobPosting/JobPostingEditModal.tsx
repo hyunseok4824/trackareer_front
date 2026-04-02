@@ -175,6 +175,28 @@ function FieldItem({
 export default function JobPostingEditModal({ mode, data, onClose }: Props) {
   const { auth } = useAuthStore();
   const [onFetching, setOnFetching] = useState<boolean>(false);
+
+  // 모바일에서 소프트 키보드가 올라올 때 모달 높이를 visualViewport 기준으로 보정
+  // tablet (600px) 이상에서는 적용하지 않음
+  const [mobileViewportHeight, setMobileViewportHeight] = useState<number | null>(null);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      if (window.innerWidth >= 600) {
+        setMobileViewportHeight(null);
+        return;
+      }
+      setMobileViewportHeight(vv.height);
+    };
+    update();
+    vv.addEventListener('resize', update);
+    window.addEventListener('resize', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
   const [fetchingErrorMessage, setFetchingErrorMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState<JobPostingCreateFormData | JobPostingUpdateFormData>(
     mode === JOB_POSTING_EDIT_MODE.MODIFIED
@@ -262,6 +284,15 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
 
   // 메모 textarea 자동 높이 조절을 위한 ref
   const memoRef = useRef<HTMLTextAreaElement>(null);
+
+  // iOS Safari에서 키보드가 올라온 후 포커스된 필드를 스크롤 컨테이너 중앙으로 이동
+  // 키보드 애니메이션이 끝난 뒤 보정하기 위해 320ms 딜레이 사용
+  const scrollFieldIntoView = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const el = e.currentTarget;
+    setTimeout(() => {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 320);
+  };
 
   const onChangeMemo = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = e.target.value.trimStart();
@@ -464,7 +495,10 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
 
   return (
     <>
-      <div className="w-full tablet:w-180 h-dvh tablet:h-auto tablet:max-h-[90dvh] flex flex-col">
+      <div
+        className="w-full tablet:w-180 h-dvh tablet:h-auto tablet:max-h-[90dvh] flex flex-col"
+        style={mobileViewportHeight !== null ? { height: `${mobileViewportHeight}px` } : undefined}
+      >
         <header className="shrink-0 w-full p-6 flex flex-row gap-3 items-start border-b-[0.5px] border-muted/25">
           <div className="flex-1 flex flex-col items-stretch gap-1">
             <h1 className="flex-1 font-bold text-2xl">{MODAL_TEXT[mode].title}</h1>
@@ -487,7 +521,7 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
         {!onFetching && !fetchingErrorMessage && (
           <>
             <div
-              className="flex-1 min-h-0 flex flex-col gap-4 p-6 overflow-y-auto"
+              className="flex-1 min-h-0 flex flex-col gap-4 px-6 pt-6 pb-16 overflow-y-auto"
               style={{
                 scrollbarWidth: 'none',
               }}
@@ -500,6 +534,7 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
                   maxLength={32}
                   value={formData.companyName}
                   onChange={onChangeCompanyName}
+                  onFocus={scrollFieldIntoView}
                 />
               </FieldItem>
               <FieldItem label="포지션" required errorMessage={errorMessage.title}>
@@ -510,6 +545,7 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
                   maxLength={64}
                   value={formData.title}
                   onChange={onChangeTitle}
+                  onFocus={scrollFieldIntoView}
                 />
               </FieldItem>
               {formData.mode !== JOB_POSTING_EDIT_MODE.MODIFIED && (
@@ -536,6 +572,7 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
                         className="flex-1 min-w-36 border border-muted focus:border-primary box-border rounded-md px-3 py-2"
                         value={formData.deadlineDate}
                         onChange={onChangeDeadlineDate}
+                        onFocus={scrollFieldIntoView}
                       />
 
                       {includeTime && (
@@ -546,6 +583,7 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
                           className="border border-muted focus:border-primary box-border w-20 rounded-md px-3 py-2"
                           value={formData.deadlineTime || ''}
                           onChange={onChangeDeadlineTime}
+                          onFocus={scrollFieldIntoView}
                         />
                       )}
 
@@ -569,6 +607,7 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
                   placeholder="메모 입력하기"
                   value={formData.memo || ''}
                   onChange={onChangeMemo}
+                  onFocus={scrollFieldIntoView}
                 />
               </FieldItem>
             </div>

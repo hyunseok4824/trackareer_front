@@ -1,5 +1,6 @@
 'use client';
 
+import AddIcon from '@/public/svg/Add.svg';
 import FullLogo from '@/public/svg/logo/FullLogo.svg';
 import { jobScrape } from '@/src/api/jobScrape';
 import CalendarView from '@/src/components/calendar/CalendarView';
@@ -150,7 +151,7 @@ export default function Page() {
           </main>
 
           {/* 모바일 하단 탭 내비게이션 */}
-          <nav className="tablet:hidden shrink-0 h-14 bg-white border-t border-gray-200 flex items-stretch">
+          <nav className="tablet:hidden shrink-0 h-14 bg-white border-t border-gray-200 flex items-stretch overflow-visible relative">
             <button
               type="button"
               onClick={() => setMobileTab('calendar')}
@@ -158,12 +159,26 @@ export default function Page() {
             >
               캘린더
             </button>
+
+            {/* 중앙 공간 확보 — 절대 배치 버튼의 터치 영역용 */}
+            <div className="flex-1" />
+
             <button
               type="button"
               onClick={() => setMobileTab('sidebar')}
               className={`flex-1 text-sm font-medium transition-colors ${mobileTab === 'sidebar' ? 'text-primary' : 'text-muted'}`}
             >
               현황
+            </button>
+
+            {/* 중앙 공고 등록 CTA — 탭 바 중앙에 절대 배치, 위로 살짝 돌출 */}
+            <button
+              type="button"
+              onClick={handleSelfButtonPressed}
+              aria-label="공고 등록"
+              className="absolute left-1/2 -translate-x-1/2 -top-4 w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg"
+            >
+              <AddIcon width={36} height={36} />
             </button>
           </nav>
         </>

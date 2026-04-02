@@ -46,9 +46,25 @@ function isGivenUp(schedule: ParsedStageSchedule) {
   return schedule.type === 'STAGE' && schedule.result === 'REJECTED' && schedule.doneAt === null;
 }
 
+// compact 모드 — 기존 배지 색상 체계와 동일한 의미/톤으로 박스 배경+테두리 색상
+function getItemBoxStyle(item: ParsedStageSchedule): string {
+  if (isGivenUp(item)) return 'bg-gray-100 border-gray-200';
+  if (item.type === SCHEDULE_TYPE.ANNOUNCEMENT) return 'bg-primary/30 border-primary/60';
+  switch (item.stageType) {
+    case 'DOCUMENT':
+    case 'ASSIGNMENT':
+      return 'bg-primary/10 border-primary/20';
+    case 'INTERVIEW':
+    case 'EXAM':
+      return 'bg-primary/20 border-primary/40';
+    default:
+      return 'bg-gray-50 border-gray-200';
+  }
+}
+
+// non-compact 모드용 배지 — 기존 유지
 function getBadgeLabel(item: ParsedStageSchedule) {
   if (item.type === 'ANNOUNCEMENT') return '결';
-
   switch (item.stageType) {
     case 'DOCUMENT':
       return '서';
@@ -62,13 +78,8 @@ function getBadgeLabel(item: ParsedStageSchedule) {
 }
 
 function getBadgeBg(item: ParsedStageSchedule) {
-  if (item.type === 'ANNOUNCEMENT') return 'bg-primary'; // ✅ 발표 전용 색 (원하는 값으로)
-
-  // ✅ 포기한 전형
-  if (isGivenUp(item)) {
-    return 'bg-disabled/100';
-  }
-
+  if (item.type === 'ANNOUNCEMENT') return 'bg-primary';
+  if (isGivenUp(item)) return 'bg-disabled/100';
   switch (item.stageType) {
     case 'DOCUMENT':
     case 'ASSIGNMENT':
@@ -127,6 +138,10 @@ export function CalendarCell({
   const overflowCount = compact
     ? Math.max(0, totalItemCount - shownSchedules.length - shownTodos.length)
     : 0;
+
+  // 숨겨진 아이템 (compact overflow 패널용)
+  const hiddenSchedules = compact ? scheduleList.slice(shownSchedules.length) : [];
+  const hiddenTodos = compact ? todoList.slice(shownTodos.length) : [];
 
   // JobPosting - Modal
   const [modalState, setModalState] = useState<JobPostingModalStateType>(null);
@@ -200,7 +215,6 @@ export function CalendarCell({
 
     switch (action) {
       case STAGE_UPDATE_MENU_ACTION.SET_COMPLETED:
-        // ✅ "완료" 선택 시 완료 메뉴 오픈
         setStageNextMenuState({
           type: SCHEDULE_TYPE.STAGE,
           schedule: stageMenuState.schedule,
@@ -208,7 +222,6 @@ export function CalendarCell({
         });
         break;
       case STAGE_UPDATE_MENU_ACTION.SET_PASSED:
-        // ✅ "합격" 선택 시 합격 메뉴 오픈
         setStageNextMenuState({
           type: SCHEDULE_TYPE.ANNOUNCEMENT,
           schedule: stageMenuState.schedule,
@@ -216,15 +229,12 @@ export function CalendarCell({
         });
         break;
       case STAGE_UPDATE_MENU_ACTION.SET_INCOMPLETED:
-        // ✅ "미완료" 선택 시 미완료 처리 (API 호출)
         await onUncompletedStageSchedule(stageMenuState.schedule.id);
         break;
       case STAGE_UPDATE_MENU_ACTION.SET_REJECTED:
-        // ✅ "불합격" 선택 시 불합격 처리 (API 호출)
         await onRejectedAnnouncementSchedule(stageMenuState.schedule.id);
         break;
       case STAGE_UPDATE_MENU_ACTION.REVERT:
-        // ✅ "되돌리기" 선택 시 되돌리기 처리 (API 호출)
         await onRollbackSchedule(stageMenuState.schedule.id, stageMenuState.schedule.jobPosting.id);
         break;
     }
@@ -238,7 +248,6 @@ export function CalendarCell({
 
   const onCompleteStage = async (payload: StageCompletedRequestBody) => {
     if (!stageNextMenuState) return;
-
     try {
       await onCompletedStageSchedule(stageNextMenuState.schedule.id, payload);
       setStageNextMenuState(null);
@@ -249,7 +258,6 @@ export function CalendarCell({
 
   const onPassStage = async (payload: StagePassedRequestBody) => {
     if (!stageNextMenuState) return;
-
     try {
       await onPassedAnnouncementSchedule(stageNextMenuState.schedule.id, payload);
       setStageNextMenuState(null);
@@ -258,12 +266,19 @@ export function CalendarCell({
     }
   };
 
+  // +N개 inline 토글 (모바일 전용)
+  const [isExpanded, setIsExpanded] = useState(false);
+  const toggleExpand = () => setIsExpanded(v => !v);
+
   return (
     <>
       <div
         className={cls(
           'w-full',
-          compact ? 'flex h-full min-h-0 flex-col overflow-hidden py-1.5' : 'py-3 min-h-54.5',
+          compact
+            ? 'flex flex-col py-1.5 tablet:h-full tablet:min-h-0 tablet:overflow-hidden'
+            : 'py-3 min-h-54.5',
+          isToday && compact && 'bg-primary/5',
           isOutsideMonth && 'opacity-30',
         )}
       >
@@ -274,20 +289,21 @@ export function CalendarCell({
           )}
         >
           {compact ? (
-            <div className="min-w-0">
-              <div
+            // 날짜 + 공휴일명: flex로 한 줄 유지, 공휴일명은 truncate 처리
+            <div className="min-w-0 flex items-center gap-1 overflow-hidden">
+              <span
                 className={cls(
-                  'text-xs font-medium min-w-0 leading-none',
-                  isToday && 'font-semibold text-primary',
+                  'shrink-0 text-xs leading-none',
+                  isToday ? 'font-semibold text-primary' : cls('font-medium', isRed && 'text-accent'),
                 )}
               >
-                <span className={cls(!isToday && isRed && 'text-accent')}>{format(date, 'd')}</span>
-                {holidayName && (
-                  <span className="ml-2 truncate rounded-full bg-accent/10  text-[12px] font-medium leading-none text-accent">
-                    {holidayName}
-                  </span>
-                )}
-              </div>
+                {format(date, 'd')}
+              </span>
+              {holidayName && (
+                <span className="min-w-0 truncate text-[9px] font-medium leading-none text-accent">
+                  {holidayName}
+                </span>
+              )}
             </div>
           ) : (
             <div className={cls('text-sm font-medium', isToday && 'font-semibold text-primary')}>
@@ -323,15 +339,85 @@ export function CalendarCell({
             shownSchedules.map(item => {
               const isCheckedItem = isChecked(item);
               const isGivenUpItem = isGivenUp(item);
+
+              if (compact) {
+                // 모바일: 색상 박스, tablet+: 배지 라벨
+                return (
+                  <div key={`${item.id}-${item.type}`}>
+                    {/* 모바일 전용: 색상 박스 + 체크박스 + 회사명 */}
+                    <div
+                      className={cls(
+                        'tablet:hidden min-w-0 rounded border px-1 py-0.5',
+                        getItemBoxStyle(item),
+                      )}
+                    >
+                      <div className="flex items-center gap-1">
+                        <CheckedCircleBox
+                          className="w-3.5 h-3.5 shrink-0"
+                          checked={isCheckedItem}
+                          onClick={e => onOpenStageMenu(e, item)}
+                        />
+                        <span
+                          className={cls(
+                            'min-w-0 flex-1 text-[11px] leading-[1.15] truncate font-medium cursor-pointer',
+                            isGivenUpItem && 'line-through text-gray-400',
+                          )}
+                          onClick={() => onOpenDetailModal(item.jobPosting.id)}
+                          role="button"
+                        >
+                          {item.jobPosting.companyName}
+                        </span>
+                      </div>
+                    </div>
+                    {/* tablet+ 전용: 배지 라벨 스타일 */}
+                    <div className="hidden tablet:block py-0.5">
+                      <div className="flex items-center gap-1">
+                        <CheckedCircleBox
+                          className="w-3.5 h-3.5"
+                          checked={isCheckedItem}
+                          onClick={e => onOpenStageMenu(e, item)}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div
+                            className="flex items-center gap-0.5 cursor-pointer"
+                            role="button"
+                            onClick={() => onOpenDetailModal(item.jobPosting.id)}
+                          >
+                            <div
+                              className={cls(
+                                'w-4 h-4 rounded-sm shrink-0 flex items-center justify-center',
+                                getBadgeBg(item),
+                              )}
+                            >
+                              <span className="text-[10px] font-medium text-white">
+                                {getBadgeLabel(item)}
+                              </span>
+                            </div>
+                            <span
+                              className={cls(
+                                'text-[11px] truncate font-medium',
+                                isGivenUpItem && 'line-through text-gray-400',
+                              )}
+                            >
+                              {item.jobPosting.companyName}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+
+              // non-compact: 기존 배지 스타일 유지
               return (
-                <div key={`${item.id}-${item.type}`} className={cls(compact ? 'min-w-0' : 'py-1')}>
+                <div key={`${item.id}-${item.type}`} className="py-1">
                   <div className="flex items-center gap-1 justify-center">
                     <CheckedCircleBox
                       className="w-4 h-4"
                       checked={isCheckedItem}
                       onClick={e => onOpenStageMenu(e, item)}
                     />
-
                     <div className="min-w-0 flex-1">
                       <div
                         className="flex items-center gap-1 cursor-pointer"
@@ -350,9 +436,7 @@ export function CalendarCell({
                         </div>
                         <span
                           className={cls(
-                            compact
-                              ? 'text-[11px] leading-[1.15] line-clamp-2 tablet:line-clamp-1 font-medium cursor-pointer'
-                              : 'text-xs truncate font-medium cursor-pointer',
+                            'text-xs truncate font-medium cursor-pointer',
                             isGivenUpItem && 'line-through text-gray-400',
                           )}
                         >
@@ -367,44 +451,133 @@ export function CalendarCell({
 
           {/* TODO */}
           {shownTodos.length > 0 &&
-            shownTodos.map(it => (
-              <div key={it.id} className={cls(compact ? 'min-w-0' : 'py-1')}>
-                <div className="flex items-center gap-1 justify-center">
-                  <CheckedCircleBox
-                    className="w-4 h-4"
-                    checked={it.isDone}
-                    onClick={() => handleTodoCheckClick(it)}
-                  />
+            shownTodos.map(it => {
+              if (compact) {
+                return (
+                  <div
+                    key={it.id}
+                    className="flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-1 py-0.5"
+                  >
+                    <CheckedCircleBox
+                      className="w-3.5 h-3.5 shrink-0"
+                      checked={it.isDone}
+                      onClick={() => handleTodoCheckClick(it)}
+                    />
+                    <span
+                      className={cls(
+                        'min-w-0 flex-1 text-[11px] leading-[1.15] truncate font-medium cursor-pointer',
+                        it.isDone && 'line-through text-gray-400',
+                      )}
+                      onClick={() => openEditTodoMenu(it)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      {it.content}
+                    </span>
+                  </div>
+                );
+              }
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1">
-                      <span
-                        className={cls(
-                          compact
-                            ? 'text-[11px] leading-[1.15] line-clamp-2 tablet:line-clamp-1 font-medium cursor-pointer'
-                            : 'text-xs truncate font-medium cursor-pointer',
-                          it.isDone && 'line-through text-gray-400',
-                        )}
-                        onClick={() => openEditTodoMenu(it)}
-                        role="button"
-                        tabIndex={0}
-                      >
-                        {it.content}
-                      </span>
+              return (
+                <div key={it.id} className="py-1">
+                  <div className="flex items-center gap-1 justify-center">
+                    <CheckedCircleBox
+                      className="w-4 h-4"
+                      checked={it.isDone}
+                      onClick={() => handleTodoCheckClick(it)}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={cls(
+                            'text-xs truncate font-medium cursor-pointer',
+                            it.isDone && 'line-through text-gray-400',
+                          )}
+                          onClick={() => openEditTodoMenu(it)}
+                          role="button"
+                          tabIndex={0}
+                        >
+                          {it.content}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
+              );
+            })}
+
+          {/* 모바일 전용: inline 확장 아이템 */}
+          {isExpanded &&
+            hiddenSchedules.map(item => {
+              const isCheckedItem = isChecked(item);
+              const isGivenUpItem = isGivenUp(item);
+              return (
+                <div
+                  key={`expanded-${item.id}-${item.type}`}
+                  className={cls(
+                    'tablet:hidden min-w-0 rounded border px-1 py-0.5',
+                    getItemBoxStyle(item),
+                  )}
+                >
+                  <div className="flex items-center gap-1">
+                    <CheckedCircleBox
+                      className="w-3.5 h-3.5 shrink-0"
+                      checked={isCheckedItem}
+                      onClick={e => onOpenStageMenu(e, item)}
+                    />
+                    <span
+                      className={cls(
+                        'min-w-0 flex-1 text-[11px] leading-[1.15] truncate font-medium cursor-pointer',
+                        isGivenUpItem && 'line-through text-gray-400',
+                      )}
+                      onClick={() => onOpenDetailModal(item.jobPosting.id)}
+                      role="button"
+                    >
+                      {item.jobPosting.companyName}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          {isExpanded &&
+            hiddenTodos.map(it => (
+              <div
+                key={`expanded-todo-${it.id}`}
+                className="tablet:hidden flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-1 py-0.5"
+              >
+                <CheckedCircleBox
+                  className="w-3.5 h-3.5 shrink-0"
+                  checked={it.isDone}
+                  onClick={() => handleTodoCheckClick(it)}
+                />
+                <span
+                  className={cls(
+                    'min-w-0 flex-1 text-[11px] leading-[1.15] truncate font-medium cursor-pointer',
+                    it.isDone && 'line-through text-gray-400',
+                  )}
+                  onClick={() => openEditTodoMenu(it)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  {it.content}
+                </span>
               </div>
             ))}
 
-          {/* 초과 아이템 표시 */}
+          {/* 초과 아이템 */}
           {overflowCount > 0 && (
-            <div
-              className={cls(
-                compact ? 'mt-auto rounded-md bg-gray-50 px-1.5 py-0.5' : 'py-0.5 px-1',
-              )}
-            >
-              <span className="text-[12px] text-primary/70 font-bold">+{overflowCount}개</span>
+            <div className="mt-auto">
+              {/* 모바일: inline 토글 */}
+              <button
+                className="tablet:hidden w-full rounded-md bg-gray-50 px-1.5 py-0.5 text-left text-[11px] text-primary/70 font-bold hover:bg-gray-100 active:bg-gray-100"
+                onClick={toggleExpand}
+              >
+                {isExpanded ? '접기' : `+${overflowCount}개`}
+              </button>
+              {/* tablet+: 정적 카운트 */}
+              <span className="hidden tablet:block px-1 text-[11px] text-gray-400">
+                +{overflowCount}개
+              </span>
             </div>
           )}
         </div>

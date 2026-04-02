@@ -234,7 +234,7 @@ export default function CalendarView() {
           </div>
 
           {/* Day-of-week header */}
-          <div className="grid grid-cols-7 border-t border-gray-100 bg-white px-3 tablet:px-4 py-2">
+          <div className="grid grid-cols-7 gap-x-0.5 tablet:gap-x-0 border-t border-gray-100 bg-white px-2 tablet:px-4 py-2">
             {DOW_LABELS.map((label, i) => (
               <div
                 key={i}
@@ -250,9 +250,12 @@ export default function CalendarView() {
         </div>
 
         {/* Monthly grid — 각 주 행 높이 고정 */}
-        <div className="px-2 tablet:px-4 pb-4 tablet:pb-6">
+        <div className="space-y-1 tablet:space-y-0 px-2 tablet:px-4 pb-4 tablet:pb-6">
           {weeks.map((week, wi) => (
-            <div key={wi} className="grid grid-cols-7 border-t border-gray-100 min-h-36 tablet:h-[7.75rem] tablet:min-h-0">
+            <div
+              key={wi}
+              className="grid grid-cols-7 gap-x-0.5 tablet:gap-x-0 border-t border-gray-100 min-h-36 tablet:min-h-[7.75rem]"
+            >
               {week.map(date => {
                 const key = dateToYYYYMMDD(date);
                 const isOutsideMonth = !isSameMonth(date, anchorDate);
@@ -264,7 +267,6 @@ export default function CalendarView() {
                     scheduleList={sortedScheduleMap.get(key) ?? []}
                     todoList={sortedTodoMap.get(key) ?? []}
                     holidayMap={holidayMap}
-                    compact={true}
                     isOutsideMonth={isOutsideMonth}
                   />
                 );

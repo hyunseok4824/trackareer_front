@@ -29,8 +29,7 @@ import { TodoType } from '@/src/types/todo';
 import { dateToYYYYMMDD } from '@/src/utils/dateFormatters';
 import { cls } from '@/src/utils/strFormatters';
 import { format, isSameDay } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 
 // ✅ 전형 완료 여부
 function isChecked(schedule: ParsedStageSchedule) {
@@ -96,7 +95,6 @@ type Props = {
   scheduleList: ParsedStageSchedule[];
   todoList: TodoType[];
   holidayMap?: Map<string, string>;
-  compact?: boolean;
   isOutsideMonth?: boolean;
 };
 
@@ -107,7 +105,7 @@ type JobPostingModalStateType = {
 
 type TodoMenuState = { type: 'CREATE'; date: string } | { type: 'EDIT'; todo: TodoType } | null;
 
-const MAX_COMPACT_ROWS = 4;
+const MAX_VISIBLE_ROWS = 4;
 
 export function CalendarCell({
   date,
@@ -115,7 +113,6 @@ export function CalendarCell({
   scheduleList,
   todoList,
   holidayMap,
-  compact = false,
   isOutsideMonth = false,
 }: Props) {
   const isToday = isSameDay(date, today);
@@ -126,22 +123,15 @@ export function CalendarCell({
   const holidayName = holidayMap?.get(dateKey);
   const isRed = isSunday || !!holidayName;
 
-  // compact 모드에서 최대 4개 슬롯만 사용하고, 초과 시 마지막 슬롯은 overflow 표시에 사용
   const totalItemCount = scheduleList.length + todoList.length;
-  const hasOverflow = compact && totalItemCount > MAX_COMPACT_ROWS;
-  const visibleItemLimit = compact ? MAX_COMPACT_ROWS - (hasOverflow ? 1 : 0) : totalItemCount;
-  const shownSchedules = compact ? scheduleList.slice(0, visibleItemLimit) : scheduleList;
-  const remainingSlots = compact
-    ? Math.max(0, visibleItemLimit - shownSchedules.length)
-    : todoList.length;
-  const shownTodos = compact ? todoList.slice(0, remainingSlots) : todoList;
-  const overflowCount = compact
-    ? Math.max(0, totalItemCount - shownSchedules.length - shownTodos.length)
-    : 0;
-
-  // 숨겨진 아이템 (compact overflow 패널용)
-  const hiddenSchedules = compact ? scheduleList.slice(shownSchedules.length) : [];
-  const hiddenTodos = compact ? todoList.slice(shownTodos.length) : [];
+  const hasOverflow = totalItemCount > MAX_VISIBLE_ROWS;
+  const visibleItemLimit = MAX_VISIBLE_ROWS - (hasOverflow ? 1 : 0);
+  const shownSchedules = scheduleList.slice(0, visibleItemLimit);
+  const remainingSlots = Math.max(0, visibleItemLimit - shownSchedules.length);
+  const shownTodos = todoList.slice(0, remainingSlots);
+  const hiddenSchedules = scheduleList.slice(shownSchedules.length);
+  const hiddenTodos = todoList.slice(shownTodos.length);
+  const overflowCount = hiddenSchedules.length + hiddenTodos.length;
 
   // JobPosting - Modal
   const [modalState, setModalState] = useState<JobPostingModalStateType>(null);
@@ -270,299 +260,200 @@ export function CalendarCell({
   const [isExpanded, setIsExpanded] = useState(false);
   const toggleExpand = () => setIsExpanded(v => !v);
 
+  const renderScheduleItem = (
+    item: ParsedStageSchedule,
+    key: string,
+    mobileOnly = false,
+  ): ReactNode => {
+    const checked = isChecked(item);
+    const givenUp = isGivenUp(item);
+
+    const mobileContent = (
+      <div className={cls('min-w-0 rounded border px-1 py-0.5', getItemBoxStyle(item))}>
+        <div className="flex items-center gap-1">
+          <CheckedCircleBox
+            className="w-3.5 h-3.5 shrink-0"
+            checked={checked}
+            onClick={e => onOpenStageMenu(e, item)}
+          />
+          <span
+            className={cls(
+              'min-w-0 flex-1 truncate text-[11px] leading-[1.15] font-medium cursor-pointer',
+              givenUp && 'line-through text-gray-400',
+            )}
+            onClick={() => onOpenDetailModal(item.jobPosting.id)}
+            role="button"
+          >
+            {item.jobPosting.companyName}
+          </span>
+        </div>
+      </div>
+    );
+
+    if (mobileOnly) {
+      return (
+        <div key={key} className="tablet:hidden">
+          {mobileContent}
+        </div>
+      );
+    }
+
+    return (
+      <div key={key}>
+        <div className="tablet:hidden">{mobileContent}</div>
+        <div className="hidden tablet:block py-0.5">
+          <div className="flex items-center gap-1">
+            <CheckedCircleBox
+              className="w-4 h-4"
+              checked={checked}
+              onClick={e => onOpenStageMenu(e, item)}
+            />
+            <div className="min-w-0 flex-1">
+              <div
+                className="flex items-center gap-0.5 cursor-pointer"
+                role="button"
+                onClick={() => onOpenDetailModal(item.jobPosting.id)}
+              >
+                <div
+                  className={cls(
+                    'w-4 h-4 rounded-sm shrink-0 flex items-center justify-center',
+                    getBadgeBg(item),
+                  )}
+                >
+                  <span className="text-[11px] font-medium text-white">{getBadgeLabel(item)}</span>
+                </div>
+                <span
+                  className={cls('text-[12px] truncate font-medium', givenUp && 'line-through text-gray-400')}
+                >
+                  {item.jobPosting.companyName}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderTodoItem = (todo: TodoType, key: string, mobileOnly = false): ReactNode => {
+    const mobileContent = (
+      <div className="flex items-center gap-1 py-0.5">
+        <CheckedCircleBox
+          className="w-3.5 h-3.5 shrink-0"
+          checked={todo.isDone}
+          onClick={() => handleTodoCheckClick(todo)}
+        />
+        <span
+          className={cls(
+            'min-w-0 flex-1 truncate text-[11px] leading-[1.15] text-gray-600 cursor-pointer',
+            todo.isDone && 'line-through text-gray-400',
+          )}
+          onClick={() => openEditTodoMenu(todo)}
+          role="button"
+          tabIndex={0}
+        >
+          {todo.content}
+        </span>
+      </div>
+    );
+
+    if (mobileOnly) {
+      return (
+        <div key={key} className="tablet:hidden">
+          {mobileContent}
+        </div>
+      );
+    }
+
+    return (
+      <div key={key}>
+        <div className="tablet:hidden">{mobileContent}</div>
+        <div className="hidden tablet:block rounded border border-gray-200 bg-gray-50 px-1 py-0.5">
+          <div className="flex items-center gap-1">
+            <CheckedCircleBox
+              className="w-3.5 h-3.5 shrink-0"
+              checked={todo.isDone}
+              onClick={() => handleTodoCheckClick(todo)}
+            />
+            <span
+              className={cls(
+                'min-w-0 flex-1 truncate text-[11px] leading-[1.15] font-medium cursor-pointer',
+                todo.isDone && 'line-through text-gray-400',
+              )}
+              onClick={() => openEditTodoMenu(todo)}
+              role="button"
+              tabIndex={0}
+            >
+              {todo.content}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <div
         className={cls(
-          'w-full',
-          compact
-            ? 'flex flex-col py-1.5 tablet:h-full tablet:min-h-0 tablet:overflow-hidden'
-            : 'py-3 min-h-54.5',
-          isToday && compact && 'bg-primary/5',
+          'w-full flex flex-col py-1.5 tablet:h-full tablet:min-h-0 tablet:overflow-hidden',
+          isToday && 'bg-primary/5',
           isOutsideMonth && 'opacity-30',
         )}
       >
         <header
           className={cls(
-            'flex justify-between gap-1',
-            compact ? 'mb-1.5 items-start' : 'mb-2 items-center',
+            'mb-1.5 flex items-start justify-start gap-1 tablet:justify-between tablet:pr-1.5',
           )}
         >
-          {compact ? (
-            // 날짜 + 공휴일명: flex로 한 줄 유지, 공휴일명은 truncate 처리
-            <div className="min-w-0 flex items-center gap-1 overflow-hidden">
-              <span
-                className={cls(
-                  'shrink-0 text-xs leading-none',
-                  isToday ? 'font-semibold text-primary' : cls('font-medium', isRed && 'text-accent'),
-                )}
-              >
-                {format(date, 'd')}
-              </span>
-              {holidayName && (
-                <span className="min-w-0 truncate text-[9px] font-medium leading-none text-accent">
-                  {holidayName}
-                </span>
+          <div className="min-w-0 flex flex-1 items-center gap-1 overflow-hidden">
+            <span
+              className={cls(
+                'shrink-0 text-sm leading-none',
+                isToday ? 'font-semibold text-primary' : cls('font-medium', isRed && 'text-accent'),
               )}
-            </div>
-          ) : (
-            <div className={cls('text-sm font-medium', isToday && 'font-semibold text-primary')}>
-              <span className={cls(!isToday && isRed && 'text-accent')}>
-                {format(date, 'MM.dd', { locale: ko })}
-              </span>
-              <span className={cls(!isToday && isRed && 'text-accent')}>
-                ({format(date, 'EEE', { locale: ko })})
-              </span>
-            </div>
-          )}
-
-          {!compact && (
-            <button
-              className="w-4 h-4 flex items-center justify-center rounded-sm border border-muted"
-              type="button"
-              onClick={openCreateTodoMenu}
             >
-              <AddIcon width={16} height={16} className={'text-muted'} />
-            </button>
-          )}
+              {format(date, 'd')}
+            </span>
+            {holidayName && (
+              <span className="min-w-0 truncate text-[12px] font-medium leading-none text-accent">
+                {holidayName}
+              </span>
+            )}
+          </div>
+
+          <button
+            className="mr-1 hidden shrink-0 items-center justify-center border border-muted tablet:inline-flex tablet:h-4 tablet:w-4 tablet:self-start tablet:rounded-sm"
+            type="button"
+            onClick={openCreateTodoMenu}
+          >
+            <AddIcon width={14} height={14} className="text-muted" />
+          </button>
         </header>
 
-        <div className={cls(compact && 'flex min-h-0 flex-1 flex-col gap-1')}>
-          {!compact && scheduleList.length === 0 && todoList.length === 0 && (
-            <div className="h-6 flex flex-row items-center">
-              <p className="text-xs text-gray-300 ">일정이 없습니다</p>
+        <div className="flex min-h-0 flex-1 flex-col gap-1">
+          {shownSchedules.map(item => renderScheduleItem(item, `${item.id}-${item.type}`))}
+          {shownTodos.map(todo => renderTodoItem(todo, `${todo.id}`))}
+
+          {/* 데스크톱: 숨겨진 항목은 토글 없이 바로 노출 */}
+          {hiddenSchedules.map(item => (
+            <div key={`desktop-${item.id}-${item.type}`} className="hidden tablet:block">
+              {renderScheduleItem(item, `desktop-content-${item.id}-${item.type}`)}
             </div>
-          )}
-
-          {/* JOB */}
-          {shownSchedules.length > 0 &&
-            shownSchedules.map(item => {
-              const isCheckedItem = isChecked(item);
-              const isGivenUpItem = isGivenUp(item);
-
-              if (compact) {
-                // 모바일: 색상 박스, tablet+: 배지 라벨
-                return (
-                  <div key={`${item.id}-${item.type}`}>
-                    {/* 모바일 전용: 색상 박스 + 체크박스 + 회사명 */}
-                    <div
-                      className={cls(
-                        'tablet:hidden min-w-0 rounded border px-1 py-0.5',
-                        getItemBoxStyle(item),
-                      )}
-                    >
-                      <div className="flex items-center gap-1">
-                        <CheckedCircleBox
-                          className="w-3.5 h-3.5 shrink-0"
-                          checked={isCheckedItem}
-                          onClick={e => onOpenStageMenu(e, item)}
-                        />
-                        <span
-                          className={cls(
-                            'min-w-0 flex-1 text-[11px] leading-[1.15] truncate font-medium cursor-pointer',
-                            isGivenUpItem && 'line-through text-gray-400',
-                          )}
-                          onClick={() => onOpenDetailModal(item.jobPosting.id)}
-                          role="button"
-                        >
-                          {item.jobPosting.companyName}
-                        </span>
-                      </div>
-                    </div>
-                    {/* tablet+ 전용: 배지 라벨 스타일 */}
-                    <div className="hidden tablet:block py-0.5">
-                      <div className="flex items-center gap-1">
-                        <CheckedCircleBox
-                          className="w-3.5 h-3.5"
-                          checked={isCheckedItem}
-                          onClick={e => onOpenStageMenu(e, item)}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <div
-                            className="flex items-center gap-0.5 cursor-pointer"
-                            role="button"
-                            onClick={() => onOpenDetailModal(item.jobPosting.id)}
-                          >
-                            <div
-                              className={cls(
-                                'w-4 h-4 rounded-sm shrink-0 flex items-center justify-center',
-                                getBadgeBg(item),
-                              )}
-                            >
-                              <span className="text-[10px] font-medium text-white">
-                                {getBadgeLabel(item)}
-                              </span>
-                            </div>
-                            <span
-                              className={cls(
-                                'text-[11px] truncate font-medium',
-                                isGivenUpItem && 'line-through text-gray-400',
-                              )}
-                            >
-                              {item.jobPosting.companyName}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              // non-compact: 기존 배지 스타일 유지
-              return (
-                <div key={`${item.id}-${item.type}`} className="py-1">
-                  <div className="flex items-center gap-1 justify-center">
-                    <CheckedCircleBox
-                      className="w-4 h-4"
-                      checked={isCheckedItem}
-                      onClick={e => onOpenStageMenu(e, item)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div
-                        className="flex items-center gap-1 cursor-pointer"
-                        role="button"
-                        onClick={() => onOpenDetailModal(item.jobPosting.id)}
-                      >
-                        <div
-                          className={cls(
-                            'w-4 h-4 rounded-sm shrink-0 flex items-center justify-center',
-                            getBadgeBg(item),
-                          )}
-                        >
-                          <span className={'text-xs font-medium text-white'}>
-                            {getBadgeLabel(item)}
-                          </span>
-                        </div>
-                        <span
-                          className={cls(
-                            'text-xs truncate font-medium cursor-pointer',
-                            isGivenUpItem && 'line-through text-gray-400',
-                          )}
-                        >
-                          {item.jobPosting.companyName}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-
-          {/* TODO */}
-          {shownTodos.length > 0 &&
-            shownTodos.map(it => {
-              if (compact) {
-                return (
-                  <div
-                    key={it.id}
-                    className="flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-1 py-0.5"
-                  >
-                    <CheckedCircleBox
-                      className="w-3.5 h-3.5 shrink-0"
-                      checked={it.isDone}
-                      onClick={() => handleTodoCheckClick(it)}
-                    />
-                    <span
-                      className={cls(
-                        'min-w-0 flex-1 text-[11px] leading-[1.15] truncate font-medium cursor-pointer',
-                        it.isDone && 'line-through text-gray-400',
-                      )}
-                      onClick={() => openEditTodoMenu(it)}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      {it.content}
-                    </span>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={it.id} className="py-1">
-                  <div className="flex items-center gap-1 justify-center">
-                    <CheckedCircleBox
-                      className="w-4 h-4"
-                      checked={it.isDone}
-                      onClick={() => handleTodoCheckClick(it)}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1">
-                        <span
-                          className={cls(
-                            'text-xs truncate font-medium cursor-pointer',
-                            it.isDone && 'line-through text-gray-400',
-                          )}
-                          onClick={() => openEditTodoMenu(it)}
-                          role="button"
-                          tabIndex={0}
-                        >
-                          {it.content}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          ))}
+          {hiddenTodos.map(todo => (
+            <div key={`desktop-todo-${todo.id}`} className="hidden tablet:block">
+              {renderTodoItem(todo, `desktop-todo-content-${todo.id}`)}
+            </div>
+          ))}
 
           {/* 모바일 전용: inline 확장 아이템 */}
           {isExpanded &&
-            hiddenSchedules.map(item => {
-              const isCheckedItem = isChecked(item);
-              const isGivenUpItem = isGivenUp(item);
-              return (
-                <div
-                  key={`expanded-${item.id}-${item.type}`}
-                  className={cls(
-                    'tablet:hidden min-w-0 rounded border px-1 py-0.5',
-                    getItemBoxStyle(item),
-                  )}
-                >
-                  <div className="flex items-center gap-1">
-                    <CheckedCircleBox
-                      className="w-3.5 h-3.5 shrink-0"
-                      checked={isCheckedItem}
-                      onClick={e => onOpenStageMenu(e, item)}
-                    />
-                    <span
-                      className={cls(
-                        'min-w-0 flex-1 text-[11px] leading-[1.15] truncate font-medium cursor-pointer',
-                        isGivenUpItem && 'line-through text-gray-400',
-                      )}
-                      onClick={() => onOpenDetailModal(item.jobPosting.id)}
-                      role="button"
-                    >
-                      {item.jobPosting.companyName}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
+            hiddenSchedules.map(item =>
+              renderScheduleItem(item, `expanded-${item.id}-${item.type}`, true),
+            )}
           {isExpanded &&
-            hiddenTodos.map(it => (
-              <div
-                key={`expanded-todo-${it.id}`}
-                className="tablet:hidden flex items-center gap-1 rounded border border-gray-200 bg-gray-50 px-1 py-0.5"
-              >
-                <CheckedCircleBox
-                  className="w-3.5 h-3.5 shrink-0"
-                  checked={it.isDone}
-                  onClick={() => handleTodoCheckClick(it)}
-                />
-                <span
-                  className={cls(
-                    'min-w-0 flex-1 text-[11px] leading-[1.15] truncate font-medium cursor-pointer',
-                    it.isDone && 'line-through text-gray-400',
-                  )}
-                  onClick={() => openEditTodoMenu(it)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  {it.content}
-                </span>
-              </div>
-            ))}
+            hiddenTodos.map(todo => renderTodoItem(todo, `expanded-todo-${todo.id}`, true))}
 
           {/* 초과 아이템 */}
           {overflowCount > 0 && (
@@ -574,10 +465,6 @@ export function CalendarCell({
               >
                 {isExpanded ? '접기' : `+${overflowCount}개`}
               </button>
-              {/* tablet+: 정적 카운트 */}
-              <span className="hidden tablet:block px-1 text-[11px] text-gray-400">
-                +{overflowCount}개
-              </span>
             </div>
           )}
         </div>

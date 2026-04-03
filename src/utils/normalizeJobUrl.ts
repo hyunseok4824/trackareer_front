@@ -10,9 +10,11 @@
  */
 
 export type NormalizeJobUrlResult = {
-  /** 정규화된 URL */
+  /** 스크래핑에 사용할 정규화된 URL */
   normalizedUrl: string;
-  /** 원본 URL과 달라졌는지 여부 */
+  /** 사용자가 입력한 URL을 저장/표시용으로 정리한 값 */
+  sourceUrl: string;
+  /** 스크래핑용 URL이 입력 URL과 달라졌는지 여부 */
   changed: boolean;
 };
 
@@ -61,26 +63,35 @@ const SITE_NORMALIZERS: Array<(url: URL) => URL | null> = [
 ];
 
 export function normalizeJobUrl(rawUrl: string): NormalizeJobUrlResult {
-  const withProtocol = addProtocol(rawUrl.trim());
+  const sourceUrl = addProtocol(rawUrl.trim());
 
   let parsed: URL;
   try {
-    parsed = new URL(withProtocol);
+    parsed = new URL(sourceUrl);
   } catch {
     // URL 파싱 실패 시 프로토콜만 추가된 값 반환
     // (유효성 검사는 JobPostingInput에서 이미 수행됨)
-    return { normalizedUrl: withProtocol, changed: withProtocol !== rawUrl };
+    return {
+      normalizedUrl: sourceUrl,
+      sourceUrl,
+      changed: sourceUrl !== rawUrl.trim(),
+    };
   }
 
   for (const normalizer of SITE_NORMALIZERS) {
     const result = normalizer(parsed);
     if (result) {
-      return { normalizedUrl: result.toString(), changed: true };
+      return {
+        normalizedUrl: result.toString(),
+        sourceUrl,
+        changed: result.toString() !== sourceUrl,
+      };
     }
   }
 
   return {
-    normalizedUrl: withProtocol,
-    changed: withProtocol !== rawUrl.trim(),
+    normalizedUrl: sourceUrl,
+    sourceUrl,
+    changed: sourceUrl !== rawUrl.trim(),
   };
 }

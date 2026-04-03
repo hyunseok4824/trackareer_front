@@ -57,7 +57,7 @@ export default function Page() {
     if (!url || onLoading) return;
 
     // 프로토콜 누락 보완 + 모바일 서브도메인 → 데스크톱 URL 정규화
-    const { normalizedUrl } = normalizeJobUrl(url);
+    const { normalizedUrl, sourceUrl } = normalizeJobUrl(url);
 
     try {
       setOnLoading(true);
@@ -74,7 +74,7 @@ export default function Page() {
         memo: null,
         deadlineDate: scrapedData.deadlineDate || '',
         deadlineTime: scrapedData.deadlineTime,
-        sourceUrl: normalizedUrl,
+        sourceUrl,
       } as JobPostingCreateFormData;
 
       setModalStatus({ type: JOB_POSTING_EDIT_MODE.SYNTHETIC, data });
@@ -89,7 +89,7 @@ export default function Page() {
           memo: null,
           deadlineDate: '',
           deadlineTime: '',
-          sourceUrl: normalizedUrl,
+          sourceUrl,
         } as JobPostingCreateFormData,
       });
     } finally {

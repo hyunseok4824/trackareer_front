@@ -119,7 +119,7 @@ export default function JobPostingInput({
               <button
                 type="button"
                 onClick={onCreate}
-                className="flex-1 tablet:flex-none py-3 tablet:py-2 px-3 rounded-2xl bg-tertiary text-sm leading-4 font-medium text-primary"
+                className="flex-1 tablet:flex-none py-3 tablet:py-2 px-3 rounded-2xl bg-tertiary text-sm leading-5 font-medium text-primary break-keep"
               >
                 직접 입력하기
               </button>
@@ -128,7 +128,7 @@ export default function JobPostingInput({
             <button
               type="button"
               onClick={handleSubmit}
-              className="flex-1 tablet:flex-none py-3 tablet:py-2 px-3 rounded-2xl bg-primary text-sm leading-4 font-medium text-white"
+              className="flex-1 tablet:flex-none py-3 tablet:py-2 px-3 rounded-2xl bg-primary text-sm leading-5 font-medium text-white break-keep"
             >
               일정에 등록하기
             </button>

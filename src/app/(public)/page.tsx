@@ -15,6 +15,7 @@ import JobPostingRegisterTypeModal from '@/src/components/jobPosting/JobPostingR
 import SideBar from '@/src/components/sidebar/Sidebar';
 import { useAuthStore } from '@/src/stores/authStore';
 import { JOB_POSTING_EDIT_MODE } from '@/src/types/jobPosting';
+import { normalizeJobUrl } from '@/src/utils/normalizeJobUrl';
 import { useState } from 'react';
 
 type ModalStatusType =
@@ -54,11 +55,15 @@ export default function Page() {
 
   const handleScrapeButtonPressed = async () => {
     if (!url || onLoading) return;
+
+    // 프로토콜 누락 보완 + 모바일 서브도메인 → 데스크톱 URL 정규화
+    const { normalizedUrl } = normalizeJobUrl(url);
+
     try {
       setOnLoading(true);
       onScraping = true;
 
-      const scrapedData = await jobScrape.loadJobData(url);
+      const scrapedData = await jobScrape.loadJobData(normalizedUrl);
 
       if (!onScraping) return;
 
@@ -69,7 +74,7 @@ export default function Page() {
         memo: null,
         deadlineDate: scrapedData.deadlineDate || '',
         deadlineTime: scrapedData.deadlineTime,
-        sourceUrl: url,
+        sourceUrl: normalizedUrl,
       } as JobPostingCreateFormData;
 
       setModalStatus({ type: JOB_POSTING_EDIT_MODE.SYNTHETIC, data });
@@ -84,7 +89,7 @@ export default function Page() {
           memo: null,
           deadlineDate: '',
           deadlineTime: '',
-          sourceUrl: url,
+          sourceUrl: normalizedUrl,
         } as JobPostingCreateFormData,
       });
     } finally {
@@ -111,10 +116,10 @@ export default function Page() {
       {!auth && (
         <main className="flex-1 w-full flex flex-col items-center justify-center px-4 tablet:px-9 py-8">
           <div className="flex-1 w-full max-w-[54rem] flex flex-col items-center justify-center pb-16 tablet:pb-0">
-            <h2 className="text-sm tablet:text-xl font-normal text-text/80 text-center">
+            <h2 className="text-sm tablet:text-xl font-normal text-text/80 text-center break-keep">
               힘들고 긴 취준 여정, 놓치지 않도록 끝까지 관리해드릴게요
             </h2>
-            <h1 className="text-2xl tablet:text-4xl font-bold text-text text-center mt-4">
+            <h1 className="text-2xl tablet:text-4xl font-bold text-text text-center mt-4 break-keep">
               지원하고 싶은 공고가 있나요?
             </h1>
             <JobPostingInput

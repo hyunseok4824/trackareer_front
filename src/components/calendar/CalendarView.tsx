@@ -254,7 +254,7 @@ export default function CalendarView() {
           {weeks.map((week, wi) => (
             <div
               key={wi}
-              className="grid grid-cols-7 gap-x-0.5 tablet:gap-x-0 border-t border-gray-100 min-h-36 tablet:min-h-[7.75rem]"
+              className="grid grid-cols-7 gap-x-0.5 tablet:gap-x-0 border-t border-gray-100 min-h-30 tablet:min-h-[7.75rem]"
             >
               {week.map(date => {
                 const key = dateToYYYYMMDD(date);

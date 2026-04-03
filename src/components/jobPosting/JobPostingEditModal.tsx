@@ -623,7 +623,7 @@ export default function JobPostingEditModal({ mode, data, onClose }: Props) {
           </>
         )}
       </div>
-      <CommonModal isOpen={isLoginModalOpened && !auth} onClose={closeLoginModal}>
+      <CommonModal isOpen={isLoginModalOpened && !auth} onClose={closeLoginModal} mobileFullscreen>
         <LoginModal onClose={closeLoginModal} />
       </CommonModal>
 

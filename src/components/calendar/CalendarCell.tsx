@@ -396,7 +396,7 @@ export function CalendarCell({
     <>
       <div
         className={cls(
-          'w-full flex flex-col py-1.5 tablet:h-full tablet:min-h-0 tablet:overflow-hidden',
+          'w-full flex flex-col tablet:pl-2 pl-0.5 py-1.5 tablet:h-full tablet:min-h-0 tablet:overflow-hidden',
           isToday && 'bg-primary/5',
           isOutsideMonth && 'opacity-30',
         )}

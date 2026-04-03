@@ -1,6 +1,7 @@
 'use client';
 
 import AddIcon from '@/public/svg/Add.svg';
+import CloseIcon from '@/public/svg/Close.svg';
 import FullLogo from '@/public/svg/logo/FullLogo.svg';
 import { jobScrape } from '@/src/api/jobScrape';
 import CalendarView from '@/src/components/calendar/CalendarView';
@@ -10,20 +11,18 @@ import JobPostingEditModal, {
   JobPostingCreateFormData,
 } from '@/src/components/jobPosting/JobPostingEditModal';
 import JobPostingInput from '@/src/components/jobPosting/JobPostingInput';
+import JobPostingRegisterTypeModal from '@/src/components/jobPosting/JobPostingRegisterTypeModal';
 import SideBar from '@/src/components/sidebar/Sidebar';
 import { useAuthStore } from '@/src/stores/authStore';
 import { JOB_POSTING_EDIT_MODE } from '@/src/types/jobPosting';
 import { useState } from 'react';
 
 type ModalStatusType =
-  | {
-      type: typeof JOB_POSTING_EDIT_MODE.DIRECT | 'CLOSED';
-      data: null;
-    }
-  | {
-      type: typeof JOB_POSTING_EDIT_MODE.SYNTHETIC;
-      data: JobPostingCreateFormData;
-    };
+  | { type: 'CLOSED'; data: null }
+  | { type: 'SELECT_TYPE'; data: null }
+  | { type: 'AUTO_INPUT'; data: null }
+  | { type: typeof JOB_POSTING_EDIT_MODE.DIRECT; data: null }
+  | { type: typeof JOB_POSTING_EDIT_MODE.SYNTHETIC; data: JobPostingCreateFormData };
 
 type MobileTab = 'calendar' | 'sidebar';
 
@@ -41,8 +40,16 @@ export default function Page() {
     setUrl(newValue);
   };
 
+  const handleAddButtonPressed = () => {
+    setModalStatus({ type: 'SELECT_TYPE', data: null });
+  };
+
   const handleSelfButtonPressed = () => {
     setModalStatus({ type: JOB_POSTING_EDIT_MODE.DIRECT, data: null });
+  };
+
+  const handleAutoRegisterSelected = () => {
+    setModalStatus({ type: 'AUTO_INPUT', data: null });
   };
 
   const handleScrapeButtonPressed = async () => {
@@ -174,7 +181,7 @@ export default function Page() {
             {/* 중앙 공고 등록 CTA — 탭 바 중앙에 절대 배치, 위로 살짝 돌출 */}
             <button
               type="button"
-              onClick={handleSelfButtonPressed}
+              onClick={handleAddButtonPressed}
               aria-label="공고 등록"
               className="absolute left-1/2 -translate-x-1/2 -top-4 w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg"
             >
@@ -184,7 +191,56 @@ export default function Page() {
         </>
       )}
 
-      <CommonModal isOpen={modalStatus.type !== 'CLOSED'} onClose={closeModal} mobileFullscreen>
+      {/* 등록 방식 선택 모달 */}
+      <CommonModal isOpen={modalStatus.type === 'SELECT_TYPE'} onClose={closeModal}>
+        <JobPostingRegisterTypeModal
+          onSelectAuto={handleAutoRegisterSelected}
+          onSelectManual={handleSelfButtonPressed}
+          onClose={closeModal}
+        />
+      </CommonModal>
+
+      {/* 자동 등록 — URL 입력 모달 */}
+      <CommonModal isOpen={modalStatus.type === 'AUTO_INPUT'} onClose={closeModal}>
+        <div className="w-full tablet:w-[32rem] flex flex-col">
+          <header className="shrink-0 w-full p-6 flex flex-row gap-3 items-start border-b-[0.5px] border-muted/25">
+            <div className="flex-1 flex flex-col gap-1">
+              <h1 className="font-bold text-2xl text-text">자동 등록</h1>
+              <p className="text-base text-muted">
+                공고 URL을 입력해서 정보를 자동으로 불러옵니다
+              </p>
+            </div>
+            <button
+              type="button"
+              className="flex items-center justify-center w-8 h-8"
+              aria-label="닫기"
+              onClick={closeModal}
+            >
+              <CloseIcon width={24} height={24} className="text-muted" />
+            </button>
+          </header>
+          <div className="p-6">
+            <JobPostingInput
+              flat
+              hideDirectButton
+              url={url}
+              onChangeUrl={handleChangeUrl}
+              onCreate={handleSelfButtonPressed}
+              onSubmit={handleScrapeButtonPressed}
+            />
+          </div>
+        </div>
+      </CommonModal>
+
+      {/* 수동 등록 / 스크래핑 결과 모달 */}
+      <CommonModal
+        isOpen={
+          modalStatus.type === JOB_POSTING_EDIT_MODE.DIRECT ||
+          modalStatus.type === JOB_POSTING_EDIT_MODE.SYNTHETIC
+        }
+        onClose={closeModal}
+        mobileFullscreen
+      >
         {modalStatus.type === JOB_POSTING_EDIT_MODE.SYNTHETIC && (
           <JobPostingEditModal
             mode={JOB_POSTING_EDIT_MODE.SYNTHETIC}

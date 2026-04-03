@@ -5,6 +5,15 @@ import { useState } from 'react';
 
 type Props = {
   className?: string;
+  /**
+   * 모달 안에서 사용할 때 카드 래퍼(배경·그림자·라운드)를 제거합니다.
+   */
+  flat?: boolean;
+  /**
+   * 자동 등록 전용 모달처럼 수동 입력 진입점이 이미 선택된 경우,
+   * "직접 입력하기" 버튼을 숨깁니다.
+   */
+  hideDirectButton?: boolean;
   url: string;
   onChangeUrl: (url: string) => void;
   onCreate: () => void;
@@ -13,6 +22,8 @@ type Props = {
 
 export default function JobPostingInput({
   className,
+  flat = false,
+  hideDirectButton = false,
   url,
   onChangeUrl,
   onCreate,
@@ -74,7 +85,11 @@ export default function JobPostingInput({
   return (
     <>
       <section
-        className={`shrink-0 w-full rounded-3xl flex flex-col bg-white overflow-hidden shadow-default ${className}`}
+        className={[
+          'shrink-0 w-full flex flex-col overflow-hidden',
+          flat ? '' : 'rounded-3xl bg-white shadow-default',
+          className ?? '',
+        ].join(' ')}
       >
         {/* Header: 모바일에서는 숨김, tablet 이상은 기존 모습 유지 */}
         <div className="hidden tablet:flex items-center justify-between gap-3 bg-primary px-6 py-3">
@@ -100,13 +115,15 @@ export default function JobPostingInput({
 
           {/* 모바일: flex-1 균등 분할 / tablet+: 기존 우측 정렬 */}
           <div className="flex items-center gap-3 tablet:justify-end">
-            <button
-              type="button"
-              onClick={onCreate}
-              className="flex-1 tablet:flex-none py-3 tablet:py-2 px-3 rounded-2xl bg-tertiary text-sm leading-4 font-medium text-primary"
-            >
-              직접 입력하기
-            </button>
+            {!hideDirectButton && (
+              <button
+                type="button"
+                onClick={onCreate}
+                className="flex-1 tablet:flex-none py-3 tablet:py-2 px-3 rounded-2xl bg-tertiary text-sm leading-4 font-medium text-primary"
+              >
+                직접 입력하기
+              </button>
+            )}
 
             <button
               type="button"

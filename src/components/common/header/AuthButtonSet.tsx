@@ -40,7 +40,7 @@ function LoginButtonSet() {
           회원가입
         </button>
       </div>
-      <CommonModal isOpen={loginModalOpened} onClose={closeLoginModal}>
+      <CommonModal isOpen={loginModalOpened} onClose={closeLoginModal} mobileFullscreen>
         <LoginModal onClose={closeLoginModal} />
       </CommonModal>
     </>

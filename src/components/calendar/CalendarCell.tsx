@@ -14,6 +14,7 @@ import StageUpdateMenu, {
 } from '@/src/components/stage/UpdateMenu';
 import CreateTodoModal from '@/src/components/todo/CreateTodoModal';
 import EditTodoModal from '@/src/components/todo/EditTodoModal';
+import { useLongPress } from '@/src/hook/useLongPress';
 import { useSchedule } from '@/src/hook/useSchedule';
 import { useTodoStore } from '@/src/stores/todoStore';
 import { STAGE_RESULT } from '@/src/types/jobPosting';
@@ -101,11 +102,48 @@ type Props = {
 type JobPostingModalStateType = {
   type: 'DETAIL' | 'EDIT';
   jobPostingId: number;
+  /** EDIT 모달을 닫을 때 동작: 상세로 복귀 vs 전체 닫기 */
+  editCloseBehavior?: 'BACK_TO_DETAIL' | 'CLOSE_ALL';
 } | null;
 
 type TodoMenuState = { type: 'CREATE'; date: string } | { type: 'EDIT'; todo: TodoType } | null;
 
 const MAX_VISIBLE_ROWS = 4;
+
+/**
+ * 모바일 전용 공고명 텍스트.
+ * - 짧은 탭 → 상세 모달
+ * - 길게 누름 → 수정 모달
+ * - 데스크톱은 onClick 으로만 동작
+ */
+function MobileScheduleText({
+  item,
+  onDetail,
+  onEdit,
+}: {
+  item: ParsedStageSchedule;
+  onDetail: () => void;
+  onEdit: () => void;
+}) {
+  const givenUp = isGivenUp(item);
+  const longPress = useLongPress(onDetail, onEdit);
+
+  return (
+    <span
+      className={cls(
+        'block w-full truncate text-[11px] leading-[1.15] font-medium cursor-pointer select-none',
+        givenUp && 'line-through text-gray-400',
+      )}
+      role="button"
+      // 데스크톱: touch 이벤트가 없으므로 onClick 이 정상 동작
+      // 모바일: onTouchEnd 에서 e.preventDefault() 로 click 차단 후 직접 처리
+      onClick={onDetail}
+      {...longPress}
+    >
+      {item.jobPosting.companyName}
+    </span>
+  );
+}
 
 export function CalendarCell({
   date,
@@ -140,8 +178,11 @@ export function CalendarCell({
     setModalState({ type: 'DETAIL', jobPostingId });
   };
 
-  const onOpenEditModal = (jobPostingId: number) => {
-    setModalState({ type: 'EDIT', jobPostingId });
+  const onOpenEditModal = (
+    jobPostingId: number,
+    closeBehavior: 'BACK_TO_DETAIL' | 'CLOSE_ALL' = 'BACK_TO_DETAIL',
+  ) => {
+    setModalState({ type: 'EDIT', jobPostingId, editCloseBehavior: closeBehavior });
   };
 
   const onCloseModal = () => {
@@ -270,23 +311,11 @@ export function CalendarCell({
 
     const mobileContent = (
       <div className={cls('min-w-0 rounded border px-1 py-0.5', getItemBoxStyle(item))}>
-        <div className="flex items-center gap-1">
-          <CheckedCircleBox
-            className="w-3.5 h-3.5 shrink-0"
-            checked={checked}
-            onClick={e => onOpenStageMenu(e, item)}
-          />
-          <span
-            className={cls(
-              'min-w-0 flex-1 truncate text-[11px] leading-[1.15] font-medium cursor-pointer',
-              givenUp && 'line-through text-gray-400',
-            )}
-            onClick={() => onOpenDetailModal(item.jobPosting.id)}
-            role="button"
-          >
-            {item.jobPosting.companyName}
-          </span>
-        </div>
+        <MobileScheduleText
+          item={item}
+          onDetail={() => onOpenDetailModal(item.jobPosting.id)}
+          onEdit={() => onOpenEditModal(item.jobPosting.id, 'CLOSE_ALL')}
+        />
       </div>
     );
 
@@ -483,7 +512,11 @@ export function CalendarCell({
             <JobPostingEditModal
               mode="MODIFIED"
               data={{ jobId: modalState.jobPostingId }}
-              onClose={() => onOpenDetailModal(modalState.jobPostingId)}
+              onClose={
+                modalState.editCloseBehavior === 'CLOSE_ALL'
+                  ? onCloseModal
+                  : () => onOpenDetailModal(modalState.jobPostingId)
+              }
             />
           )}
         </CommonModal>
